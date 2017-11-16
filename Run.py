@@ -13,7 +13,7 @@ n_trials = 10
 max_steps_per_trial = 1000000
 
 # Choose an environment
-environment_here = 'Invasion_Game' # don't forget to set ps_eta = 1 for Invasion_Game, Driver_Game (they don't have temporal correlations)
+environment_here = 'JW_GridWorld' # don't forget to set ps_eta = 1 for Invasion_Game, Driver_Game (they don't have temporal correlations)
 # Choose an agent
 agent_here = 'PS-basic'
 
@@ -28,6 +28,8 @@ elif environment_here == 'Quantum_Networks_1':
 	from q_network_env_1 import *
 elif environment_here == 'Quantum_Networks_2': 
 	from q_network_env_2 import *
+elif environment_here == 'JW_GridWorld':
+    from JW_GridWorld_env import *
 
 # Import an agent
 if agent_here == 'PS-basic': 
@@ -46,7 +48,7 @@ for i_param_scan in range(n_param_scan):
 	average_learning_curve = np.zeros(n_trials)
 	for i_agent in range(n_agents): 
 		# Inialize an environmemnt	
-		if environment_here in ('Driver_Game', 'Invasion_Game'): 
+		if environment_here in ('Driver_Game', 'Invasion_Game', 'JW_GridWorld'): 
 			env = TaskEnvironment()
 		elif environment_here == 'Neverending_Color': 
 			env = TaskEnvironment(2, n_trials, 1) # n_actions, n_trials, reward_value
