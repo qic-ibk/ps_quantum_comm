@@ -1,3 +1,6 @@
+# stuff in results directory (since you probably don't want to overwrite them when pulling)
+results/
+
 # backup-files for some editors
 *~
 
