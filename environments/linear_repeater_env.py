@@ -30,11 +30,16 @@ PURIFY_12 = 17
 PURIFY_13 = 18
 PURIFY_23 = 19
 
+h0 = np.array([1,0,0,0], dtype=int)
+h1 = np.array([0,1,0,0], dtype=int)
+h2 = np.array([0,0,1,0], dtype=int)
+h3 = np.array([0,0,0,1], dtype=int)
 
 q = 0.57
 index_array = np.array([[-1,0,1,2],[0,-1,3,4],[1,3,-1,5],[2,4,5,-1]])
 qubits_from_index = np.array([[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
 list_of_pairwise_indices = [[0,1,2],[0,3,4],[1,3,5],[2,4,5]] #01,02,03,12,13,23
+qubits_affected = [h0,h0,h1,h1,h2,h2,h3,h3]+[h0+h1,h0+h2,h0+h3,h1+h2,h1+h3,h2+h3]*2 #which qubits are affected by the action?
 
 
 def fidelity_to_percept(fid): #discretization
@@ -117,10 +122,13 @@ class TaskEnvironment(object):
     
     '''
     
-    def __init__(self, **userconfig):
+    def __init__(self, tracks_time = True, **userconfig):
         self.n_actions = 20
         self.n_percepts = np.array([3]*4 + [7]*6) #positions and pair-wise coarse-grained fidelity
         self.state = EnvState()
+        self.tracks_time = True
+        self.time_now = 0
+        self.qubits_in_use = np.array([0,0,0,0],dtype=int)
 
     def actions(self): #why is this a method?
         return self.n_actions
@@ -130,7 +138,9 @@ class TaskEnvironment(object):
     
     def reset(self):
         self.state = EnvState()
-        return self.state.observation()
+        self.time_now = 0
+        self.qubits_in_use = np.array([0,0,0,0],dtype=int)
+        return self.state.observation(), self.time_now
     
     def ent_swap_detection(self,action):
         '''
@@ -233,11 +243,18 @@ class TaskEnvironment(object):
         elif action == PURIFY_23:
             self.state.purify(2,3)
         
+        if self.tracks_time == True:
+            if np.dot(qubits_affected[action], self.qubits_in_use) != 0: #i.e. the action cannot be performed in parallel
+                self.time_now += 1
+                self.qubits_in_use = qubits_affected[action]
+            else:
+                self.qubits_in_use += qubits_affected[action]
+        
         if check_success(self.state):
             reward = 1
             episode_finished = 1
         else:
             reward = 0
             episode_finished = 0
-        return self.state.observation(), reward, episode_finished
+        return self.state.observation(), reward, episode_finished, self.time_now
         
