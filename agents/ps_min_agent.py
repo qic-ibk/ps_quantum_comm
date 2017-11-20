@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
-
+from scipy.sparse import lil_matrix, issparse # for sparse matrices
 
 class BasicPSAgent(object):
     """ PS agent implementation """
@@ -21,8 +21,8 @@ class BasicPSAgent(object):
         self.ps_eta = ps_eta
         self.ps_alpha = ps_alpha
         
-        self.h_matrix = np.ones((self.n_actions, self.n_percepts))
-        self.g_matrix = np.zeros((self.n_actions, self.n_percepts))
+        self.h_matrix = lil_matrix((self.n_actions, self.n_percepts), dtype=np.float32)
+        self.g_matrix = lil_matrix((self.n_actions, self.n_percepts), dtype=np.float32)
         self.history_since_last_reward = []
         
     def percept_preprocess(self, observation): # preparing for creating a percept
@@ -44,12 +44,14 @@ class BasicPSAgent(object):
     
     def policy(self, observation): # action selection
         percept_now = self.percept_preprocess(observation)
+        if np.sum(self.h_matrix[:, percept_now]) == 0: # if percept_now is new - create it
+            self.h_matrix[:, percept_now] = 1
         if self.policy_type == 'softmax':
-            h_vector_now = self.ps_alpha * self.h_matrix[:, percept_now]
+            h_vector_now = (self.ps_alpha * self.h_matrix[:, percept_now]).toarray().flatten()
             h_vector_now_mod = h_vector_now - np.max(h_vector_now)
             p_vector_now = np.exp(h_vector_now_mod) / np.sum(np.exp(h_vector_now_mod))     
         elif self.policy_type == 'standard':
-            h_vector_now = self.h_matrix[:, percept_now]
+            h_vector_now = (self.h_matrix[:, percept_now]).toarray().flatten()
             p_vector_now = h_vector_now / np.sum(h_vector_now)
         action = np.random.choice(np.arange(self.n_actions), p=p_vector_now)
 #        # internally update the g-matrix
@@ -58,10 +60,12 @@ class BasicPSAgent(object):
         self.history_since_last_reward += [(action,percept_now)]
         return action
         
-    def learning(self, reward_now):
+    def learning(self, reward_now): # learning and forgetting
         if self.ps_gamma == 0 and reward_now == 0:
             pass
         else:
-            self.update_g_matrix()       
-            self.h_matrix = (1 - self.ps_gamma) * self.h_matrix + self.ps_gamma * np.ones((self.n_actions, self.n_percepts)) + reward_now * self.g_matrix
+            self.update_g_matrix()
+            if self.ps_gamma != 0:
+                self.h_matrix.data -= self.ps_gamma * (self.h_matrix.data - 1.) # works because of manipulations with the same sparsity
+            self.h_matrix += self.g_matrix * reward_now # h- and g-matrices have in general different sparsity
             
