@@ -3,11 +3,10 @@ import numpy as np
 
 class Interaction(object):
     
-    def __init__(self, agent_type, agent, environment, video_bool, **userconfig):
+    def __init__(self, agent_type, agent, environment):
         self.agent_type = agent_type
         self.agent = agent
         self.env = environment
-        self.video_bool = video_bool
         
     def single_learning_life(self, n_trials, max_steps_per_trial):
         learning_curve = np.zeros(n_trials)
@@ -19,8 +18,7 @@ class Interaction(object):
                 last_trial_history = []
             for t in range(max_steps_per_trial):
                 old_observation = observation
-                if self.agent_type in ('PS', 'PS-basic'):
-                    observation, reward, done, action = self.single_interaction_step_PS(observation)
+                observation, reward, done, action = self.single_interaction_step(observation)
                 reward_trial += float(reward)
                 if i_trial == n_trials - 1:
                     last_trial_history += [(old_observation, action)]
@@ -29,9 +27,8 @@ class Interaction(object):
                     break
         return learning_curve, last_trial_history
         
-    def single_interaction_step_PS(self, observation):
-        percept_now = self.agent.percept_preprocess(observation)
-        action = self.agent.policy(percept_now)
+    def single_interaction_step(self, observation):
+        action = self.agent.policy(observation)
 #        print("Agent policy step finished.")
         #print(observation, percept_now, action) #, end=" "
         observation, reward, done = self.env.move(action)
