@@ -100,8 +100,8 @@ if n_agents == 1:
 ## Saving files
 #current_file_directory = os.path.dirname(os.path.abspath(__file__))
 #if n_agents == 1:
-#    np.savetxt(current_file_directory+'/results'+'/h_matrix', agent.h_matrix_output(), fmt='%.2f', delimiter=',')
-#    np.savetxt(current_file_directory+'/results'+'/g_matrix', agent.g_matrix_output(), fmt='%.3f', delimiter=',')
+#    np.savetxt(current_file_directory+'/results'+'/h_matrix', agent.h_matrix, fmt='%.2f', delimiter=',')
+#    np.savetxt(current_file_directory+'/results'+'/g_matrix', agent.g_matrix, fmt='%.3f', delimiter=',')
 #    np.savetxt(current_file_directory+'/results'+'/learning_curve', average_learning_curve, fmt='%.10f', delimiter=',')
 #else:
 #    np.savetxt(current_file_directory+'/results'+'/param_performance', average_param_performance, fmt='%.10f', delimiter=',')
