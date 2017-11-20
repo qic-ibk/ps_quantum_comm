@@ -94,6 +94,7 @@ class EnvState:
                     aux = qubits_from_index[index]
                     entswap_qubit2 = aux[aux != qubit2][0]
                     entswap_fid2 = self.fid[index]
+                    break
             if entswap_qubit1 != -1 and entswap_qubit2 != -1:
                 q1 = (4*entswap_fid1 - 1)/3
                 q2 = (4*entswap_fid2 - 1)/3
@@ -130,6 +131,49 @@ class TaskEnvironment(object):
     def reset(self):
         self.state = EnvState()
         return self.state.observation()
+    
+    def ent_swap_detection(self,action):
+        '''
+        This is an auxiliary method for analyzing results and is not needed for running the environment.
+        
+        Returns True if action will lead to entanglement swapping, False otherwise.
+        '''
+        def detect(qubit1,qubit2):     
+            if self.state.pos[qubit1] == self.state.pos[qubit2]:
+                entswap_qubit1 = -1
+                entswap_qubit2 = -1
+                for index in list_of_pairwise_indices[qubit1]:
+                    if self.state.fid[index] != 0:
+                        aux = qubits_from_index[index]
+                        entswap_qubit1 = aux[aux != qubit1][0]
+                        break
+                for index in list_of_pairwise_indices[qubit2]:
+                    if self.state.fid[index] != 0:
+                        aux = qubits_from_index[index]
+                        entswap_qubit2 = aux[aux != qubit2][0]
+                        break
+                if entswap_qubit1 != -1 and entswap_qubit2 != -1:
+                    return True
+                else:
+                    return False
+            else:
+                return False
+            
+        
+        if action == BELL_01:
+            return detect(0,1)
+        elif action == BELL_02:
+            return detect(0,2)
+        elif action == BELL_03:
+            return detect(0,3)
+        elif action == BELL_12:
+            return detect(1,2)
+        elif action == BELL_13:
+            return detect(1,3)
+        elif action == BELL_23:
+            return detect(2,3)
+        else:
+            return False
     
     def move(self,action): 
         if action == SEND_Q0_LEFT:
