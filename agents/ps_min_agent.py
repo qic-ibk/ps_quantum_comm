@@ -42,7 +42,8 @@ class BasicPSAgent(object):
             self.g_matrix[action,percept] = (1-self.ps_eta)**(n - 1 - i)
         self.history_since_last_reward = []
     
-    def policy(self, percept_now): # action selection
+    def policy(self, observation): # action selection
+        percept_now = self.percept_preprocess(observation)
         if self.policy_type == 'softmax':
             h_vector_now = self.ps_alpha * self.h_matrix[:, percept_now]
             h_vector_now_mod = h_vector_now - np.max(h_vector_now)
