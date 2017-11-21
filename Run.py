@@ -68,7 +68,7 @@ for i_param_scan in range(n_param_scan):
             env = TaskEnvironment(2, 2) # n_qubits, line_length
         # Inialize an agent
         if agent_here == 'PS-basic': 
-            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1) 
+            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=True) 
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
             
         interaction = Interaction(agent_here, agent, env, False)

@@ -26,7 +26,7 @@ class BasicPSAgent(object):
         self.g_matrix = np.zeros((self.n_actions, self.n_percepts))
         self.history_since_last_reward = []
         if time_glow == True: # prepare some properties the time dependant glow will need
-            self.time_before = -1
+            self.time_before = 0
             self.history_since_last_time_step = []
         
     def percept_preprocess(self, observation): # preparing for creating a percept
@@ -41,9 +41,12 @@ class BasicPSAgent(object):
             percept += product * observation[i_sum]
         return percept
 
-    def update_g_matrix(self):
+    def update_g_matrix(self,time_now = None):
         if self.config["time_aware_glow"] == True:
-            self.history_since_last_reward += [self.history_since_last_time_step]
+            if self.time_before == time_now:
+                self.history_since_last_reward += [self.history_since_last_time_step]
+            else:
+                self.history_since_last_reward += [self.history_since_last_time_step[:-1],self.history_since_last_time_step[-1:]]
             n = len(self.history_since_last_reward)
             self.g_matrix = (1-self.config["ps_eta"])**n * self.g_matrix
             for i, sub_history in enumerate(self.history_since_last_reward):
@@ -74,20 +77,20 @@ class BasicPSAgent(object):
 #        self.g_matrix[action, percept_now] = 1
         if self.config["time_aware_glow"] == True:
             if time_now != self.time_before:
-                self.history_since_last_reward += [self.history_since_last_time_step]
-                self.history_since_last_time_step = []
+                self.history_since_last_reward += [self.history_since_last_time_step[:-1]]
+                self.history_since_last_time_step = self.history_since_last_time_step[-1:]
                 self.time_before = time_now
             self.history_since_last_time_step += [(action,percept_now)]
         else:
             self.history_since_last_reward += [(action,percept_now)]
         return action
         
-    def learning(self, reward_now):
+    def learning(self, reward_now, time_now = None):
         config = self.config
         if config["ps_gamma"] == 0 and reward_now == 0:
             pass
         else:
-            self.update_g_matrix()       
+            self.update_g_matrix(time_now)       
             self.h_matrix = (1 - self.config["ps_gamma"]) * self.h_matrix + self.config["ps_gamma"] * np.ones((self.n_actions, self.n_percepts)) + reward_now * self.g_matrix
         
     def h_matrix_output(self):
