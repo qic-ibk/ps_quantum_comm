@@ -1,6 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
-from scipy.sparse import lil_matrix, issparse # for sparse matrices
+from scipy.sparse import lil_matrix # for sparse matrices
 
 class BasicPSAgent(object):
     """ PS agent implementation """
@@ -64,6 +64,7 @@ class BasicPSAgent(object):
         percept_now = self.percept_preprocess(observation)
         if np.sum(self.h_matrix[:, percept_now]) == 0: # if percept_now is new - create it
             self.h_matrix[:, percept_now] = 1
+#            self.g_matrix[:, percept_now] = 0 # makes sense to also test this option
         if self.policy_type == 'softmax':
             h_vector_now = (self.ps_alpha * self.h_matrix[:, percept_now]).toarray().flatten()
             h_vector_now_mod = h_vector_now - np.max(h_vector_now)
