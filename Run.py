@@ -71,7 +71,7 @@ for i_param_scan in range(n_param_scan):
             agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=True) 
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
             
-        interaction = Interaction(agent_here, agent, env, False)
+        interaction = Interaction(agent_here, agent, env)
         learning_curve, last_trial_history = interaction.single_learning_life(n_trials, max_steps_per_trial)
         average_learning_curve += learning_curve/n_agents
 #        plt.scatter(np.arange(1,n_trials+1),1/(learning_curve + pow(10,-10)),c=next(colors))
@@ -100,8 +100,8 @@ if n_agents == 1:
 ## Saving files
 #current_file_directory = os.path.dirname(os.path.abspath(__file__))
 #if n_agents == 1:
-#    np.savetxt(current_file_directory+'/results'+'/h_matrix', agent.h_matrix_output(), fmt='%.2f', delimiter=',')
-#    np.savetxt(current_file_directory+'/results'+'/g_matrix', agent.g_matrix_output(), fmt='%.3f', delimiter=',')
+#    np.savetxt(current_file_directory+'/results'+'/h_matrix', agent.h_matrix, fmt='%.2f', delimiter=',')
+#    np.savetxt(current_file_directory+'/results'+'/g_matrix', agent.g_matrix, fmt='%.3f', delimiter=',')
 #    np.savetxt(current_file_directory+'/results'+'/learning_curve', average_learning_curve, fmt='%.10f', delimiter=',')
 #else:
 #    np.savetxt(current_file_directory+'/results'+'/param_performance', average_param_performance, fmt='%.10f', delimiter=',')
