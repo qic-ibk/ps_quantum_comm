@@ -57,8 +57,9 @@ for i_param_scan in range(n_param_scan):
     
     average_learning_curve = np.zeros(n_trials)
     for i_agent in range(n_agents): 
-        # Inialize an environmemnt    
-        if environment_here in ('Driver_Game', 'Invasion_Game', 'JW_GridWorld', 'linearRepeater'): 
+        # Inialize an environmemnt  
+        tg = False
+        if environment_here in ('Driver_Game', 'Invasion_Game', 'JW_GridWorld'): 
             env = TaskEnvironment()
         elif environment_here == 'Neverending_Color': 
             env = TaskEnvironment(2, n_trials, 1) # n_actions, n_trials, reward_value
@@ -66,9 +67,12 @@ for i_param_scan in range(n_param_scan):
             env = TaskEnvironment(2, 2) # n_qubits, line_length
         elif environment_here == 'Quantum_Networks_2': 
             env = TaskEnvironment(2, 2) # n_qubits, line_length
+        elif environment_here == 'linearRepeater':
+            env = TaskEnvironment(tracks_time = True)
+            tg = True
         # Inialize an agent
         if agent_here == 'PS-basic': 
-            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=True) 
+            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=tg) 
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
             
         interaction = Interaction(agent_here, agent, env)
@@ -81,13 +85,13 @@ for i_param_scan in range(n_param_scan):
 ##    plt.show()
 #    print('Number of steps to the goal (only makes sense when the goal is always reached in each trial, e.g. grid world or q. networks)\n', 1/(average_learning_curve + pow(10,-10)) ) # pow(10,-10) to awoid division by 0
 ##    plt.cla()
-##    plt.scatter(np.arange(1,n_trials+1),1/(average_learning_curve + pow(10,-10)))
+#    plt.scatter(np.arange(1,n_trials+1),1/(average_learning_curve + pow(10,-10)))
 #    plt.ylim(0,10000)
 #    plt.grid()
 #    plt.show()
 #    average_param_performance[i_param_scan] = average_learning_curve[n_trials-1]
-#    
-#print("This took %.2f minutes." % ((time()-start_time)/60))
+    
+print("This took %.2f minutes." % ((time()-start_time)/60))
         
 current_file_directory = os.path.dirname(os.path.abspath(__file__))
 if n_agents == 1:
