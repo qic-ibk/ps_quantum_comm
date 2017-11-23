@@ -126,7 +126,7 @@ class TaskEnvironment(object):
         self.n_actions = 20
         self.n_percepts = np.array([3]*4 + [7]*6) #positions and pair-wise coarse-grained fidelity
         self.state = EnvState()
-        self.tracks_time = True
+        self.tracks_time = tracks_time
         self.time_now = 0
         self.qubits_in_use = np.array([0,0,0,0],dtype=int)
 
