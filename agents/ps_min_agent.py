@@ -28,7 +28,8 @@ class DenseGMatrix(np.ndarray):
 
 class CustomSparseMatrix(lil_matrix):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        lil_matrix.__init__(self, *args, **kwargs)
+        # super().__init__(*args, **kwargs)  # only works properly in python3
 
     def __add__(self, other):  # because lil_matrix.__add__ doesn't preserve sparsity type by default
         return self.__class__(self.tocsc().__add__(other))
@@ -39,7 +40,8 @@ class CustomSparseMatrix(lil_matrix):
 
 class SparseHMatrix(CustomSparseMatrix):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        CustomSparseMatrix.__init__(self, *args, **kwargs)
+        # super().__init__(*args, **kwargs)  # only works properly in python3
 
     def get_h_vector(self, percept):
         if np.sum(self[:, percept]) == 0:  # if percept is new - create it
@@ -54,7 +56,8 @@ class SparseHMatrix(CustomSparseMatrix):
 
 class SparseGMatrix(CustomSparseMatrix):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        CustomSparseMatrix.__init__(self, *args, **kwargs)
+        # super().__init__(*args, **kwargs)  # only works properly in python3
 
 
 class BasicPSAgent(object):
