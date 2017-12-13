@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import numpy as np
 from scipy.sparse import lil_matrix # for sparse matrices
+from time import time
 
 class BasicPSAgent(object):
     """ PS agent implementation """
@@ -12,6 +13,8 @@ class BasicPSAgent(object):
     """ ps_alpha - constant """
     
     def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, time_glow=False):
+        self.agent_wait_time = time()
+        
         self.n_actions = n_actions
         self.n_percepts_multi = n_percepts_multi
         self.n_percepts = np.prod(n_percepts_multi)
@@ -61,6 +64,9 @@ class BasicPSAgent(object):
             self.history_since_last_reward = []
     
     def policy(self, observation, time_now = None): # action selection
+        if (time()-self.agent_wait_time)/60 > 5:
+            self.agent_wait_time = time()
+            print('Please wait... I am deliberating')
         percept_now = self.percept_preprocess(observation)
         if np.sum(self.h_matrix[:, percept_now]) == 0: # if percept_now is new - create it
             self.h_matrix[:, percept_now] = 1
@@ -91,7 +97,9 @@ class BasicPSAgent(object):
         if self.ps_gamma == 0 and reward_now == 0:
             pass
         else:
-            self.update_g_matrix(time_now)       
+            self.update_g_matrix(time_now)
             if self.ps_gamma != 0:
-                self.h_matrix.data -= self.ps_gamma * (self.h_matrix.data - 1.) # works because of manipulations with the same sparsity
+                self.h_matrix = self.h_matrix.tocsc()
+                self.h_matrix.data = (1 - self.ps_gamma) * self.h_matrix.data + self.ps_gamma # forgetting
+                self.h_matrix = self.h_matrix.tolil()
             self.h_matrix += self.g_matrix * reward_now # h- and g-matrices have in general different sparsity
