@@ -1,10 +1,10 @@
-#import platform
-#print('Python version:', platform.python_version())
+# import platform
+# print('Python version:', platform.python_version())
 
 from __future__ import division, print_function
-import os, inspect # for current directory
+import os, inspect  # for current directory
 import numpy as np
-import sys # for importing agents and environments
+import sys  # for importing agents and environments
 sys.path.insert(0, 'agents')
 sys.path.insert(0, 'environments')
 import matplotlib.pyplot as plt
@@ -16,8 +16,8 @@ start_time = time()
 
 # performance evaluation
 n_agents = 1
-n_trials = 1500
-max_steps_per_trial = 10000
+n_trials = 1
+max_steps_per_trial = 1000
 colors = itertools.cycle(["r", "b", "g"])
 
 # Choose an environment
@@ -26,15 +26,15 @@ environment_here = 'linearRepeater' # don't forget to set ps_eta = 1 for Invasio
 agent_here = 'PS-basic'
 
 # Import an environment
-if environment_here == 'Driver_Game': 
+if environment_here == 'Driver_Game':
     from driver_game_env import *
-elif environment_here == 'Invasion_Game': 
+elif environment_here == 'Invasion_Game':
     from invasion_game_env import *
-elif environment_here == 'Neverending_Color': 
+elif environment_here == 'Neverending_Color':
     from neverending_color_env import *
-elif environment_here == 'Quantum_Networks_1': 
+elif environment_here == 'Quantum_Networks_1':
     from q_network_env_1 import *
-elif environment_here == 'Quantum_Networks_2': 
+elif environment_here == 'Quantum_Networks_2':
     from q_network_env_2 import *
 elif environment_here == 'JW_GridWorld':
     from JW_GridWorld_env import *
@@ -42,9 +42,9 @@ elif environment_here == 'linearRepeater':
     from linear_repeater_env import *
 
 # Import an agent
-if agent_here == 'PS-basic': 
+if agent_here == 'PS-basic':
     from ps_min_agent import * # import the basic PS agent
-    
+
 # Import interaction class
 from general_interaction import *
 
@@ -52,34 +52,34 @@ from general_interaction import *
 n_param_scan = 1
 average_param_performance = np.zeros(n_param_scan)
 for i_param_scan in range(n_param_scan):
-    
+
     ps_eta = i_param_scan * 0.001
-    
+
     average_learning_curve = np.zeros(n_trials)
-    for i_agent in range(n_agents): 
-        # Inialize an environmemnt  
+    for i_agent in range(n_agents):
+        # Inialize an environmemnt
         tg = False
-        if environment_here in ('Driver_Game', 'Invasion_Game', 'JW_GridWorld'): 
+        if environment_here in ('Driver_Game', 'Invasion_Game', 'JW_GridWorld'):
             env = TaskEnvironment()
-        elif environment_here == 'Neverending_Color': 
+        elif environment_here == 'Neverending_Color':
             env = TaskEnvironment(2, n_trials, 1) # n_actions, n_trials, reward_value
-        elif environment_here == 'Quantum_Networks_1': 
+        elif environment_here == 'Quantum_Networks_1':
             env = TaskEnvironment(2, 2) # n_qubits, line_length
-        elif environment_here == 'Quantum_Networks_2': 
+        elif environment_here == 'Quantum_Networks_2':
             env = TaskEnvironment(2, 2) # n_qubits, line_length
         elif environment_here == 'linearRepeater':
             env = TaskEnvironment(tracks_time = True)
             tg = True
         # Inialize an agent
-        if agent_here == 'PS-basic': 
-            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=tg) 
+        if agent_here == 'PS-basic':
+            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=tg, matrix_type="sparse")
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
-            
+
         interaction = Interaction(agent_here, agent, env)
         learning_curve, last_trial_history = interaction.single_learning_life(n_trials, max_steps_per_trial)
         average_learning_curve += learning_curve/n_agents
 #        plt.scatter(np.arange(1,n_trials+1),1/(learning_curve + pow(10,-10)),c=next(colors))
-        
+
 ##    print('Total average reward per action\n', average_learning_curve)
 ##    plt.plot(np.arange(1,n_trials+1),average_learning_curve)
 ##    plt.show()
@@ -90,9 +90,9 @@ for i_param_scan in range(n_param_scan):
 #    plt.grid()
 #    plt.show()
 #    average_param_performance[i_param_scan] = average_learning_curve[n_trials-1]
-    
+
 print("This took %.2f minutes." % ((time()-start_time)/60))
-        
+
 current_file_directory = os.path.dirname(os.path.abspath(__file__))
 if n_agents == 1:
     np.savetxt(current_file_directory + "/results/learning_curve.txt", average_learning_curve, fmt='%.10f', delimiter=',')
