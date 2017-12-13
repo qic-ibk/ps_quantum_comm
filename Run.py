@@ -17,7 +17,7 @@ start_time = time()
 # performance evaluation
 n_agents = 1
 n_trials = 1
-max_steps_per_trial = 1000
+max_steps_per_trial = 10000
 colors = itertools.cycle(["r", "b", "g"])
 
 # Choose an environment
@@ -91,21 +91,20 @@ for i_param_scan in range(n_param_scan):
 #    plt.show()
 #    average_param_performance[i_param_scan] = average_learning_curve[n_trials-1]
 
-print("This took %.2f minutes." % ((time()-start_time)/60))
+print("This took %.2f minutes." % ((time() - start_time) / 60))
 
 current_file_directory = os.path.dirname(os.path.abspath(__file__))
 if n_agents == 1:
     np.savetxt(current_file_directory + "/results/learning_curve.txt", average_learning_curve, fmt='%.10f', delimiter=',')
-    last_trial_history = [ (x.tolist(),int(y)) for x,y in last_trial_history] #make my stupid format json compatible
+    last_trial_history = [(x.tolist(), int(y)) for x, y in last_trial_history]  # make my stupid format json compatible
     with open(current_file_directory + "/results/last_trial_history.txt", "w") as f:
         json.dump(last_trial_history, f)
-#        f.write(str(last_trial_history))
 
 ## Saving files
-#current_file_directory = os.path.dirname(os.path.abspath(__file__))
-#if n_agents == 1:
+# current_file_directory = os.path.dirname(os.path.abspath(__file__))
+# if n_agents == 1:
 #    np.savetxt(current_file_directory+'/results'+'/h_matrix', agent.h_matrix, fmt='%.2f', delimiter=',')
 #    np.savetxt(current_file_directory+'/results'+'/g_matrix', agent.g_matrix, fmt='%.3f', delimiter=',')
 #    np.savetxt(current_file_directory+'/results'+'/learning_curve', average_learning_curve, fmt='%.10f', delimiter=',')
-#else:
+# else:
 #    np.savetxt(current_file_directory+'/results'+'/param_performance', average_param_performance, fmt='%.10f', delimiter=',')
