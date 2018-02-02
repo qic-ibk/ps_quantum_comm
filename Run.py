@@ -16,12 +16,12 @@ start_time = time()
 
 # performance evaluation
 n_agents = 1
-n_trials = 1
+n_trials = 100
 max_steps_per_trial = 10000
 colors = itertools.cycle(["r", "b", "g"])
 
 # Choose an environment
-environment_here = 'linearRepeater' # don't forget to set ps_eta = 1 for Invasion_Game, Driver_Game (they don't have temporal correlations)
+environment_here = 'linearRepeater_less_actions' # don't forget to set ps_eta = 1 for Invasion_Game, Driver_Game (they don't have temporal correlations)
 # Choose an agent
 agent_here = 'PS-basic'
 
@@ -40,6 +40,8 @@ elif environment_here == 'JW_GridWorld':
     from JW_GridWorld_env import *
 elif environment_here == 'linearRepeater':
     from linear_repeater_env import *
+elif environment_here == 'linearRepeater_less_actions':
+    from linear_repeater_less_actions import *
 
 # Import an agent
 if agent_here == 'PS-basic':
@@ -67,7 +69,7 @@ for i_param_scan in range(n_param_scan):
             env = TaskEnvironment(2, 2) # n_qubits, line_length
         elif environment_here == 'Quantum_Networks_2':
             env = TaskEnvironment(2, 2) # n_qubits, line_length
-        elif environment_here == 'linearRepeater':
+        elif environment_here in ('linearRepeater', 'linearRepeater_less_actions'):
             env = TaskEnvironment(tracks_time = True)
             tg = True
         # Inialize an agent
