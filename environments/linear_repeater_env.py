@@ -140,7 +140,10 @@ class TaskEnvironment(object):
         self.state = EnvState()
         self.time_now = 0
         self.qubits_in_use = np.array([0, 0, 0, 0], dtype=int)
-        return self.state.observation(), self.time_now
+        if self.tracks_time:
+            return self.state.observation(), self.time_now
+        else:
+            return self.state.observation()
 
     def ent_swap_detection(self, action):
         '''
@@ -255,4 +258,7 @@ class TaskEnvironment(object):
         else:
             reward = 0
             episode_finished = 0
-        return self.state.observation(), reward, episode_finished, self.time_now
+        if self.tracks_time is True:
+            return self.state.observation(), reward, episode_finished, self.time_now
+        else:
+            return self.state.observation(), reward, episode_finished
