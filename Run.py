@@ -16,7 +16,7 @@ start_time = time()
 
 # performance evaluation
 n_agents = 1
-n_trials = 100
+n_trials = 1
 max_steps_per_trial = 10000
 colors = itertools.cycle(["r", "b", "g"])
 
@@ -70,8 +70,8 @@ for i_param_scan in range(n_param_scan):
         elif environment_here == 'Quantum_Networks_2':
             env = TaskEnvironment(2, 2) # n_qubits, line_length
         elif environment_here in ('linearRepeater', 'linearRepeater_less_actions'):
-            env = TaskEnvironment(tracks_time = True)
-            tg = True
+            env = TaskEnvironment(tracks_time = False)
+            tg = False
         # Inialize an agent
         if agent_here == 'PS-basic':
             agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=tg, matrix_type="sparse")
