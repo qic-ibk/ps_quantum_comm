@@ -32,7 +32,7 @@ class Interaction(object):
         return learning_curve, last_trial_history
 
     def single_interaction_step_PS(self, observation, time_now=None):
-        action = self.agent.policy(observation, time_now)
+        action = self.agent.policy(observation)
         if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
             observation, reward, done, time_now = self.env.move(action)
         else:
