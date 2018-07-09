@@ -74,7 +74,7 @@ for i_param_scan in range(n_param_scan):
             tg = False
         # Inialize an agent
         if agent_here == 'PS-basic':
-            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, time_glow=tg, matrix_type="sparse")
+            agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, matrix_type="sparse")
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
 
         interaction = Interaction(agent_here, agent, env)
