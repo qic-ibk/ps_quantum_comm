@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 import numpy as np
 from time import time
+import agents.brains as brains
 
 
 class BasicPSAgent(object):
@@ -27,17 +28,17 @@ class BasicPSAgent(object):
         self.ps_alpha = ps_alpha
 
         if matrix_type == "dense":
-            from brains.dense_brain import DenseBrain
+            from .brains.dense_brain import DenseBrain
             self.brain = DenseBrain(self.n_actions, self.n_percepts)
         elif matrix_type == "sparse":
-            from brains.sparse_brain import SparseBrain
+            from .brains.sparse_brain import SparseBrain
             self.brain = SparseBrain(self.n_actions, self.n_percepts)
         else:
             raise ValueError("%s is not a supported matrix_type" % matrix_type)
 
         self.history_since_last_reward = []
 
-    def percept_preprocess(self, observation):  # preparing for creating a percept
+    def _percept_preprocess(self, observation):  # preparing for creating a percept
         percept = observation[0]
         for i_sum in range(1, observation.size):
             product = 1
@@ -46,11 +47,7 @@ class BasicPSAgent(object):
             percept += product * observation[i_sum]
         return percept
 
-    def policy(self, observation):  # action selection
-        if (time() - self.agent_wait_time) / 60 > 5:
-            self.agent_wait_time = time()
-            print('Please wait... I am deliberating')
-        percept_now = self.percept_preprocess(observation)
+    def _policy(self, percept_now):  # action selection
         if self.policy_type == 'softmax':
             h_vector_now = self.ps_alpha * self.brain.get_h_vector(percept_now)
             h_vector_now_mod = h_vector_now - np.max(h_vector_now)
@@ -62,13 +59,23 @@ class BasicPSAgent(object):
 #        # internally update the g-matrix
 #        self.g_matrix = (1 - self.ps_eta) * self.g_matrix
 #        self.g_matrix[action, percept_now] = 1
-        self.history_since_last_reward += [(action, percept_now)]
         return action
 
-    def learning(self, reward_now, time_now=None):  # learning and forgetting
+    def _learning(self, reward_now):  # learning and forgetting
             if self.ps_gamma != 0:
                 self.brain.decay(self.ps_gamma)
             if reward_now != 0:
                 self.brain.update_g_matrix(self.ps_eta, self.history_since_last_reward)
                 self.history_since_last_reward = []
                 self.brain.h_matrix += self.brain.g_matrix * reward_now  # h- and g-matrices have in general different sparsity
+
+    def deliberate_and_learn(self, observation, reward, info):  # this variant does nothing with info
+        if (time() - self.agent_wait_time) / 60 > 5:
+            self.agent_wait_time = time()
+            print('Please wait... I am deliberating')
+
+        self._learning(reward)
+        percept_now = self._percept_preprocess(observation)
+        action = self._policy(percept_now)
+        self.history_since_last_reward += [(action, percept_now)]
+        return action
