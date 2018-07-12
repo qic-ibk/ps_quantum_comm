@@ -67,7 +67,7 @@ class BasicPSAgent(object):
             if reward_now != 0:
                 self.brain.update_g_matrix(self.ps_eta, self.history_since_last_reward)
                 self.history_since_last_reward = []
-                self.brain.h_matrix += self.brain.g_matrix * reward_now  # h- and g-matrices have in general different sparsity
+                self.brain.update_h_matrix(reward_now)
 
     def deliberate_and_learn(self, observation, reward, info):  # this variant does nothing with info
         if (time() - self.agent_wait_time) / 60 > 5:

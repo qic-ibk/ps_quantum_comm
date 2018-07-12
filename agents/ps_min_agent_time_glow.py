@@ -27,7 +27,7 @@ class TimeGlowAgent(BasicPSAgent):
             self._update_g_matrix(time_now)  # needs to handle updating itself instead of relying on brain
             self.history_since_last_time_step = []
             self.history_since_last_reward = []
-            self.brain.h_matrix += self.brain.g_matrix * reward_now  # h- and g-matrices have in general different sparsity
+            self.brain.update_h_matrix(reward_now)
 
     def deliberate_and_learn(self, observation, reward, info):
         if (time() - self.agent_wait_time) / 60 > 5:
