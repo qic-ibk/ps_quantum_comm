@@ -13,9 +13,6 @@ class _DenseHMatrix(np.ndarray):
     def get_h_vector(self, percept):
         return self[:, percept]
 
-    def decay(self, gamma):
-        self = (1. - gamma) * self + gamma * np.ones(self.shape, dtype=self.dtype)
-
 
 class _DenseGMatrix(np.ndarray):
     def __new__(cls, shape, dtype=np.float):
@@ -33,7 +30,7 @@ class DenseBrain(object):
         self.g_matrix = _DenseGMatrix((n_actions, n_percepts), dtype=np.float32)
 
     def decay(self, gamma):
-        self.h_matrix.decay(gamma)
+        self.h_matrix = (1. - gamma) * self.h_matrix + gamma * np.ones(self.h_matrix.shape, dtype=self.h_matrix.dtype)
 
     def get_h_vector(self, percept):
         return self.h_matrix.get_h_vector(percept)
@@ -48,3 +45,8 @@ class DenseBrain(object):
 
     def update_h_matrix(self, reward):
         self.h_matrix += self.g_matrix * reward
+
+    def add_percept(self):
+        # there must be a more elegant way to do this
+        self.h_matrix = np.hstack([self.h_matrix, np.ones((self.h_matrix.shape[0], 1), dtype=self.h_matrix.dtype)]).view(self.h_matrix.__class__)
+        self.g_matrix = np.hstack([self.g_matrix, np.zeros((self.g_matrix.shape[0], 1), dtype=self.g_matrix.dtype)]).view(self.g_matrix.__class__)
