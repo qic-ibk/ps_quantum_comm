@@ -58,3 +58,6 @@ class SparseBrain(object):
         self.g_matrix = (1 - eta)**n * self.g_matrix
         for i, [action, percept] in enumerate(history_since_last_reward):
             self.g_matrix[action, percept] = (1 - eta)**(n - 1 - i)
+
+    def update_h_matrix(self, reward):
+        self.h_matrix += self.g_matrix * reward  # h- and g-matrices have in general different sparsity
