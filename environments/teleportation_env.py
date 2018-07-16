@@ -1,5 +1,5 @@
 import numpy as np
-from . import matrix as mat
+from .libraries import matrix as mat
 
 H_0 = 0
 P_0 = 1
