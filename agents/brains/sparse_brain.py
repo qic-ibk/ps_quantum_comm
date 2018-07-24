@@ -1,6 +1,6 @@
 """A two-layer clip network with h and g matrices stored as sparse matrices."""
 
-from scipy.sparse import lil_matrix
+from scipy.sparse import lil_matrix, hstack
 import numpy as np
 
 
@@ -26,11 +26,6 @@ class _SparseHMatrix(_CustomSparseMatrix):
             self[:, percept] = 1
         return self[:, percept].toarray().flatten()
 
-    def decay(self, gamma):
-        aux = self.tocsc()
-        aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
-        self = _SparseHMatrix(aux)
-
 
 class _SparseGMatrix(_CustomSparseMatrix):
     def __init__(self, *args, **kwargs):
@@ -46,7 +41,9 @@ class SparseBrain(object):
         self.g_matrix = _SparseGMatrix((n_actions, n_percepts), dtype=np.float32)
 
     def decay(self, gamma):
-        self.h_matrix.decay(gamma)
+        aux = self.h_matrix.tocsc()
+        aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
+        self.h_matrix = _SparseHMatrix(aux)
 
     def get_h_vector(self, percept):
         return self.h_matrix.get_h_vector(percept)
@@ -61,3 +58,8 @@ class SparseBrain(object):
 
     def update_h_matrix(self, reward):
         self.h_matrix += self.g_matrix * reward  # h- and g-matrices have in general different sparsity
+
+    def add_percept(self):
+        # also here, there must be a more elegant way to do this
+        self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], 1), dtype=self.h_matrix.dtype)], format="lil"))
+        self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], 1), dtype=self.g_matrix.dtype)], format="lil"))
