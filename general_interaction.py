@@ -14,6 +14,8 @@ class Interaction(object):
         reward = 0
         info = {}
         for i_trial in range(n_trials):
+            # if i_trial % 500 == 0:
+            #     print("trial number %d is under way" % i_trial)
             reward_trial = 0
             if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
                 observation, time_now = self.env.reset()

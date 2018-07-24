@@ -5,6 +5,8 @@ from .ps_min_agent import BasicPSAgent
 
 class TimeGlowAgent(BasicPSAgent):
     def __init__(self, *args, **kwargs):
+        if kwargs["brain_type"] == "clip":
+            raise ValueError("%s is not a supported brain_type" % kwargs["brain_type"])
         BasicPSAgent.__init__(self, *args, **kwargs)
         self.time_before = 0
         self.history_since_last_time_step = []

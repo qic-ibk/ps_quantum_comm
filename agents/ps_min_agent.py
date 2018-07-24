@@ -16,7 +16,7 @@ class BasicPSAgent(object):
 
     """
 
-    def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, matrix_type="dense"):
+    def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense"):
         self.agent_wait_time = time()
         self.n_actions = n_actions
         self.n_percepts_multi = n_percepts_multi
@@ -27,14 +27,17 @@ class BasicPSAgent(object):
         self.ps_eta = ps_eta
         self.ps_alpha = ps_alpha
 
-        if matrix_type == "dense":
+        if brain_type == "dense":
             from .brains.dense_brain import DenseBrain
             self.brain = DenseBrain(self.n_actions, self.n_percepts)
-        elif matrix_type == "sparse":
+        elif brain_type == "sparse":
             from .brains.sparse_brain import SparseBrain
             self.brain = SparseBrain(self.n_actions, self.n_percepts)
+        elif brain_type == "clip":
+            from .brains.clip_brain import ClipBrain
+            self.brain = ClipBrain(self.n_actions, self.n_percepts)
         else:
-            raise ValueError("%s is not a supported matrix_type" % matrix_type)
+            raise ValueError("%s is not a supported brain_type" % brain_type)
 
         self.history_since_last_reward = []
 
