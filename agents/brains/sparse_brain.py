@@ -21,11 +21,6 @@ class _SparseHMatrix(_CustomSparseMatrix):
         _CustomSparseMatrix.__init__(self, *args, **kwargs)
         # super().__init__(*args, **kwargs)  # only works properly in python3
 
-    def get_h_vector(self, percept):
-        if np.sum(self[:, percept]) == 0:  # if percept is new - create it
-            self[:, percept] = 1
-        return self[:, percept].toarray().flatten()
-
 
 class _SparseGMatrix(_CustomSparseMatrix):
     def __init__(self, *args, **kwargs):
@@ -36,17 +31,28 @@ class _SparseGMatrix(_CustomSparseMatrix):
 class SparseBrain(object):
     """A two-layer clip network with h and g matrices stored as sparse matrices."""
 
-    def __init__(self, n_actions, n_percepts):
+    def __init__(self, n_actions, n_percepts, mode="h_zero"):
         self.h_matrix = _SparseHMatrix((n_actions, n_percepts), dtype=np.float32)
         self.g_matrix = _SparseGMatrix((n_actions, n_percepts), dtype=np.float32)
+        self.mode = mode  # h_zero mode will save h-1 instead of h. use only if all edges exist
 
     def decay(self, gamma):
-        aux = self.h_matrix.tocsc()
-        aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
-        self.h_matrix = _SparseHMatrix(aux)
+        if self.mode == "h_zero":
+            aux = self.h_matrix.tocsc()  # not sure if this is necessary in this case
+            aux.data *= (1 - gamma)
+            self.h_matrix = _SparseHMatrix(aux)
+        else:
+            aux = self.h_matrix.tocsc()
+            aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
+            self.h_matrix = _SparseHMatrix(aux)
 
     def get_h_vector(self, percept):
-        return self.h_matrix.get_h_vector(percept)
+        if self.mode == "h_zero":
+            return self.h_matrix[:, percept].toarray().flatten() + 1
+        else:
+            if np.sum(self.h_matrix[:, percept]) == 0:  # if percept is new - create it
+                self.h_matrix[:, percept] = 1
+            return self.h_matrix[:, percept].toarray().flatten()
 
     def update_g_matrix(self, eta, history_since_last_reward):
         if not isinstance(history_since_last_reward[0], tuple):
