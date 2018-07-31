@@ -31,10 +31,12 @@ class _SparseGMatrix(_CustomSparseMatrix):
 class SparseBrain(object):
     """A two-layer clip network with h and g matrices stored as sparse matrices."""
 
-    def __init__(self, n_actions, n_percepts, mode="h_zero"):
+    def __init__(self, n_actions, n_percepts, mode="h_zero", blocksize=1024):
         self.h_matrix = _SparseHMatrix((n_actions, n_percepts), dtype=np.float32)
         self.g_matrix = _SparseGMatrix((n_actions, n_percepts), dtype=np.float32)
         self.mode = mode  # h_zero mode will save h-1 instead of h. use only if all edges exist
+        self.blocksize = blocksize
+        self.percept_buffer = blocksize - 1
 
     def decay(self, gamma):
         if self.mode == "h_zero":
@@ -66,6 +68,9 @@ class SparseBrain(object):
         self.h_matrix += self.g_matrix * reward  # h- and g-matrices have in general different sparsity
 
     def add_percept(self):
-        # also here, there must be a more elegant way to do this
-        self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], 1), dtype=self.h_matrix.dtype)], format="lil"))
-        self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], 1), dtype=self.g_matrix.dtype)], format="lil"))
+        self.percept_buffer += 1
+        if self.percept_buffer >= self.blocksize:
+            # also here, there must be a more elegant way to do this
+            self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], self.blocksize), dtype=self.h_matrix.dtype)], format="lil"))
+            self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], self.blocksize), dtype=self.g_matrix.dtype)], format="lil"))
+            self.percept_buffer = 0
