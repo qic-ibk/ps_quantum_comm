@@ -9,14 +9,15 @@ class Interaction(object):
         self.agent = agent
         self.env = environment
 
-    def single_learning_life(self, n_trials, max_steps_per_trial):
+    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False):
         learning_curve = np.zeros(n_trials)
         reward = 0
         info = {}
+        res = {}
         for i_trial in range(n_trials):
-            # if i_trial % 500 == 0:
-            #     print("trial number %d is under way" % i_trial)
             reward_trial = 0
+            if i_trial % 500 == 0:
+                print("Trial %d now." % i_trial)
             if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
                 observation, time_now = self.env.reset()
                 info = {"time_now": time_now}
@@ -28,12 +29,15 @@ class Interaction(object):
                 old_observation = observation
                 observation, reward, done, action, info = self.single_interaction_step_PS(observation, reward, info)
                 reward_trial += float(reward)
-                if i_trial == n_trials - 1:
+                if return_last_trial_history and i_trial == n_trials - 1:
                     last_trial_history += [(old_observation, action)]
                 if done:
                     learning_curve[i_trial] = reward_trial / (t + 1)
                     break
-        return learning_curve, last_trial_history
+        res["learning_curve"] = learning_curve
+        if return_last_trial_history:
+            res["last_trial_history"] = last_trial_history
+        return res
 
     def single_interaction_step_PS(self, observation, reward, info):
         action = self.agent.deliberate_and_learn(observation, reward, info)
