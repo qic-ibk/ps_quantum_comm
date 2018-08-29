@@ -16,6 +16,8 @@ class Interaction(object):
         res = {}
         for i_trial in range(n_trials):
             reward_trial = 0
+            if i_trial % 500 == 0:
+                print("Trial %d now." % i_trial)
             if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
                 observation, time_now = self.env.reset()
                 info = {"time_now": time_now}
