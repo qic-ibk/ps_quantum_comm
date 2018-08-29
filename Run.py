@@ -78,7 +78,8 @@ for i_param_scan in range(n_param_scan):
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
 
         interaction = Interaction(agent_here, agent, env)
-        learning_curve, last_trial_history = interaction.single_learning_life(n_trials, max_steps_per_trial)
+        res = interaction.single_learning_life(n_trials, max_steps_per_trial)
+        learning_curve, last_trial_history = res.learning_curve, res.last_trial_history
         average_learning_curve += learning_curve / n_agents
 #        plt.scatter(np.arange(1,n_trials+1),1/(learning_curve + pow(10,-10)),c=next(colors))
 

@@ -21,11 +21,6 @@ class _SparseHMatrix(_CustomSparseMatrix):
         _CustomSparseMatrix.__init__(self, *args, **kwargs)
         # super().__init__(*args, **kwargs)  # only works properly in python3
 
-    def get_h_vector(self, percept):
-        if np.sum(self[:, percept]) == 0:  # if percept is new - create it
-            self[:, percept] = 1
-        return self[:, percept].toarray().flatten()
-
 
 class _SparseGMatrix(_CustomSparseMatrix):
     def __init__(self, *args, **kwargs):
@@ -36,17 +31,30 @@ class _SparseGMatrix(_CustomSparseMatrix):
 class SparseBrain(object):
     """A two-layer clip network with h and g matrices stored as sparse matrices."""
 
-    def __init__(self, n_actions, n_percepts):
+    def __init__(self, n_actions, n_percepts, mode="h_zero", blocksize=1024):
         self.h_matrix = _SparseHMatrix((n_actions, n_percepts), dtype=np.float32)
         self.g_matrix = _SparseGMatrix((n_actions, n_percepts), dtype=np.float32)
+        self.mode = mode  # h_zero mode will save h-1 instead of h. use only if all edges exist
+        self.blocksize = blocksize
+        self.percept_buffer = blocksize - 1
 
     def decay(self, gamma):
-        aux = self.h_matrix.tocsc()
-        aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
-        self.h_matrix = _SparseHMatrix(aux)
+        if self.mode == "h_zero":
+            aux = self.h_matrix.tocsc()  # not sure if this is necessary in this case
+            aux.data *= (1 - gamma)
+            self.h_matrix = _SparseHMatrix(aux)
+        else:
+            aux = self.h_matrix.tocsc()
+            aux.data -= gamma * (aux.data - 1.)  # h = (1-gamma)*h + gamma*1 matrix
+            self.h_matrix = _SparseHMatrix(aux)
 
     def get_h_vector(self, percept):
-        return self.h_matrix.get_h_vector(percept)
+        if self.mode == "h_zero":
+            return self.h_matrix[:, percept].toarray().flatten() + 1
+        else:
+            if np.sum(self.h_matrix[:, percept]) == 0:  # if percept is new - create it
+                self.h_matrix[:, percept] = 1
+            return self.h_matrix[:, percept].toarray().flatten()
 
     def update_g_matrix(self, eta, history_since_last_reward):
         if not isinstance(history_since_last_reward[0], tuple):
@@ -60,6 +68,9 @@ class SparseBrain(object):
         self.h_matrix += self.g_matrix * reward  # h- and g-matrices have in general different sparsity
 
     def add_percept(self):
-        # also here, there must be a more elegant way to do this
-        self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], 1), dtype=self.h_matrix.dtype)], format="lil"))
-        self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], 1), dtype=self.g_matrix.dtype)], format="lil"))
+        self.percept_buffer += 1
+        if self.percept_buffer >= self.blocksize:
+            # also here, there must be a more elegant way to do this
+            self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], self.blocksize), dtype=self.h_matrix.dtype)], format="lil"))
+            self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], self.blocksize), dtype=self.g_matrix.dtype)], format="lil"))
+            self.percept_buffer = 0

@@ -25,9 +25,11 @@ class _DenseGMatrix(np.ndarray):
 class DenseBrain(object):
     """A two-layer clip network with h and g matrices stored as numpy arrays."""
 
-    def __init__(self, n_actions, n_percepts):
+    def __init__(self, n_actions, n_percepts, blocksize=1024):
         self.h_matrix = _DenseHMatrix((n_actions, n_percepts), dtype=np.float32)
         self.g_matrix = _DenseGMatrix((n_actions, n_percepts), dtype=np.float32)
+        self.blocksize = blocksize
+        self.percept_buffer = blocksize - 1
 
     def decay(self, gamma):
         self.h_matrix = (1. - gamma) * self.h_matrix + gamma * np.ones(self.h_matrix.shape, dtype=self.h_matrix.dtype)
@@ -47,6 +49,9 @@ class DenseBrain(object):
         self.h_matrix += self.g_matrix * reward
 
     def add_percept(self):
-        # there must be a more elegant way to do this
-        self.h_matrix = np.hstack([self.h_matrix, np.ones((self.h_matrix.shape[0], 1), dtype=self.h_matrix.dtype)]).view(self.h_matrix.__class__)
-        self.g_matrix = np.hstack([self.g_matrix, np.zeros((self.g_matrix.shape[0], 1), dtype=self.g_matrix.dtype)]).view(self.g_matrix.__class__)
+        self.percept_buffer += 1
+        if self.percept_buffer >= self.blocksize:
+            # there must be a more elegant way to do this
+            self.h_matrix = np.hstack([self.h_matrix, np.ones((self.h_matrix.shape[0], self.blocksize), dtype=self.h_matrix.dtype)]).view(self.h_matrix.__class__)
+            self.g_matrix = np.hstack([self.g_matrix, np.zeros((self.g_matrix.shape[0], self.blocksize), dtype=self.g_matrix.dtype)]).view(self.g_matrix.__class__)
+            self.percept_buffer = 0
