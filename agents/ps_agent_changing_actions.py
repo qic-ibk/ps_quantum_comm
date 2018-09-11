@@ -1,6 +1,6 @@
 """
 """
-
+import numpy as np
 from .ps_agent_flexible_percepts import FlexiblePerceptsPSAgent
 
 
