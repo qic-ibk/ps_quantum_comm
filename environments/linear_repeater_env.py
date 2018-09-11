@@ -141,7 +141,7 @@ class TaskEnvironment(object):
         self.time_now = 0
         self.qubits_in_use = np.array([0, 0, 0, 0], dtype=int)
         if self.tracks_time:
-            return self.state.observation(), self.time_now
+            return self.state.observation(), {"time_now": self.time_now}
         else:
             return self.state.observation()
 
@@ -244,6 +244,8 @@ class TaskEnvironment(object):
             self.state.purify(1, 3)
         elif action == PURIFY_23:
             self.state.purify(2, 3)
+        else:
+            raise ValueError("TaskEnvironment does not support action %s" % repr(action))
 
         if self.tracks_time is True:
             if np.dot(qubits_affected[action], self.qubits_in_use) != 0:  # i.e. the action cannot be performed in parallel
