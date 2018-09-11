@@ -18,11 +18,11 @@ class Interaction(object):
             reward_trial = 0
             if i_trial % 500 == 0:
                 print("Interaction is now starting trial %d of %d." % (i_trial, n_trials))
-            if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
-                observation, time_now = self.env.reset()
-                info = {"time_now": time_now}
+            setup = self.env.reset()
+            if not isinstance(setup, tuple):
+                observation = setup
             else:
-                observation = self.env.reset()
+                observation, info = setup
             if i_trial == n_trials - 1:
                 last_trial_history = []
             for t in range(max_steps_per_trial):

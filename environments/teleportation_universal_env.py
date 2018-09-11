@@ -18,6 +18,11 @@ OUTCOME_MINUS_1 = 13
 OUTCOME_PLUS_2 = 14
 OUTCOME_MINUS_2 = 15
 
+# actions involving certain qubits
+ACTIONS_Q0 = [0, 1, 6, 7]
+ACTIONS_Q1 = [2, 3, 6, 8]
+ACTIONS_Q2 = [4, 5, 9]
+
 
 Ha = mat.Ha
 T = np.array([[1, 0], [0, 1 / np.sqrt(2) * (1 + 1j)]], dtype=np.complex)
@@ -105,18 +110,27 @@ class TaskEnvironment(object):
         self.target_rho = np.dot(self.target, mat.H(self.target))
         self.state = tensor(self.target, phiplus)
         self.percept_now = []
+        self.available_actions = [i for i in range(self.n_actions)]
 
     def reset(self):
         self.target = _random_pure_state()
         self.target_rho = np.dot(self.target, mat.H(self.target))
         self.state = tensor(self.target, phiplus)
         self.percept_now = []
-        return self.percept_now
+        self.available_actions = [i for i in range(self.n_actions)]
+        return self.percept_now, {"available_actions": self.available_actions}
 
     def _check_success(self):
         aux = np.dot(self.state, mat.H(self.state))
         aux = mat.ptrace(aux, [0, 1])
         return np.allclose(aux, self.target_rho)
+
+    def _remove_actions(self, actions):
+        for action in actions:
+            try:
+                self.available_actions.remove(action)
+            except ValueError:
+                continue
 
     def move(self, action):
         if action in range(7):
@@ -142,18 +156,23 @@ class TaskEnvironment(object):
                 self.percept_now += [OUTCOME_PLUS_0]
             else:
                 self.percept_now += [OUTCOME_MINUS_0]
+            self._remove_actions(ACTIONS_Q0)
         elif action == MEASURE_1:
             self.state, outcome = _measure(self.state, 1)
             if outcome == 0:
                 self.percept_now += [OUTCOME_PLUS_1]
             else:
                 self.percept_now += [OUTCOME_MINUS_1]
+            self._remove_actions(ACTIONS_Q1)
         elif action == MEASURE_2:
             self.state, outcome = _measure(self.state, 2)
             if outcome == 0:
                 self.percept_now += [OUTCOME_PLUS_2]
             else:
                 self.percept_now += [OUTCOME_MINUS_2]
+            self._remove_actions(ACTIONS_Q2)
+        else:
+            raise ValueError("TaskEnvironment does not support action %s" % repr(action))
 
         if self._check_success():
             reward = 1
@@ -162,4 +181,7 @@ class TaskEnvironment(object):
             reward = 0
             episode_finished = 0
 
-        return self.percept_now, reward, episode_finished
+        if not self.available_actions:  # if no actions remain, episode is over
+            episode_finished = 1
+
+        return self.percept_now, reward, episode_finished, {"available_actions": self.available_actions}
