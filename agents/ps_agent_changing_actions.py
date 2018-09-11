@@ -21,8 +21,11 @@ class ChangingActionsPSAgent(FlexiblePerceptsPSAgent):
             h_vector_now = self.brain.get_h_vector(percept_now)
             h_vector_now_mod = h_vector_now[self.available_actions]  # only consider available actions
             p_vector_now = h_vector_now_mod / np.sum(h_vector_now_mod)
-        action = np.random.choice(np.arange(self.n_actions), p=p_vector_now)
-        return action
+        try:
+            action = np.random.choice(self.available_actions, p=p_vector_now)
+            return action
+        except ValueError:
+            return None
 
     def deliberate_and_learn(self, observation, reward, info):
         if "available_actions" in info:
