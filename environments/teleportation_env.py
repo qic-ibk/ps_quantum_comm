@@ -47,27 +47,27 @@ def H(rho):
 #     return np.dot(np.dot(U, rho), H(U))
 
 
-h0 = tensor(Ha, Id, Id)
-p0 = tensor(P, Id, Id)
-h1 = tensor(Id, Ha, Id)
-p1 = tensor(Id, P, Id)
-h2 = tensor(Id, Id, Ha)
-p2 = tensor(Id, Id, P)
-cnot01 = tensor(CNOT, Id)
+h0 = tensor(Id, Ha, Id, Id)
+p0 = tensor(Id, P, Id, Id)
+h1 = tensor(Id, Id, Ha, Id)
+p1 = tensor(Id, Id, P, Id)
+h2 = tensor(Id, Id, Id, Ha)
+p2 = tensor(Id, Id, Id, P)
+cnot01 = tensor(Id, CNOT, Id)
 
-proj_plus_0 = tensor(mat.Pz0, Id, Id)
-proj_minus_0 = tensor(mat.Pz1, Id, Id)
-proj_plus_1 = tensor(Id, mat.Pz0, Id)
-proj_minus_1 = tensor(Id, mat.Pz1, Id)
-proj_plus_2 = tensor(Id, Id, mat.Pz0)
-proj_minus_2 = tensor(Id, Id, mat.Pz1)
+proj_plus_0 = tensor(Id, mat.Pz0, Id, Id)
+proj_minus_0 = tensor(Id, mat.Pz1, Id, Id)
+proj_plus_1 = tensor(Id, Id, mat.Pz0, Id)
+proj_minus_1 = tensor(Id, Id, mat.Pz1, Id)
+proj_plus_2 = tensor(Id, Id, Id, mat.Pz0)
+proj_minus_2 = tensor(Id, Id, Id, mat.Pz1)
 
 
-def _random_pure_state():
-    # pick a random point on the bloch sphere
-    phi = 2 * np.pi * np.random.random()
-    theta = np.arccos(2 * np.random.random() - 1)
-    return np.cos(theta / 2) * mat.z0 + np.exp(1j * phi) * np.sin(theta / 2) * mat.z1
+# def _random_pure_state():
+#     # pick a random point on the bloch sphere
+#     phi = 2 * np.pi * np.random.random()
+#     theta = np.arccos(2 * np.random.random() - 1)
+#     return np.cos(theta / 2) * mat.z0 + np.exp(1j * phi) * np.sin(theta / 2) * mat.z1
 
 
 def _norm(psi):
@@ -106,14 +106,14 @@ class TaskEnvironment(object):
     def __init__(self, **userconfig):
         self.n_actions = 10
         # self.n_percepts  # not applicable here
-        self.target = _random_pure_state()
+        self.target = phiplus
         self.target_rho = np.dot(self.target, mat.H(self.target))
         self.state = tensor(self.target, phiplus)
         self.percept_now = []
         self.available_actions = [i for i in range(self.n_actions)]
 
     def reset(self):
-        self.target = _random_pure_state()
+        self.target = phiplus
         self.target_rho = np.dot(self.target, mat.H(self.target))
         self.state = tensor(self.target, phiplus)
         self.percept_now = []
@@ -122,7 +122,7 @@ class TaskEnvironment(object):
 
     def _check_success(self):
         aux = np.dot(self.state, mat.H(self.state))
-        aux = mat.ptrace(aux, [0, 1])
+        aux = mat.ptrace(aux, [1, 2])  # note that 1, 2 in this notation corresponds to qubits 0 and 1
         return np.allclose(aux, self.target_rho)
 
     def _remove_actions(self, actions):
