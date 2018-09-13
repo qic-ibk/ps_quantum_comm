@@ -9,12 +9,13 @@ def get_step_dicts(path, num=64):
     res = []
     for i in range(num):
         print(i)
-        try:
-            with open(path + "/step_curve_%d.txt" % i, "r") as f:
-                step_curve = np.loadtxt(f)
-        except FileNotFoundError:
-            print(path + "/step_curve_%d.txt" + " is missing")
-            continue
+        # try:
+        #     with open(path + "/step_curve_%d.txt" % i, "r") as f:
+        #         step_curve = np.loadtxt(f)
+        # except FileNotFoundError:
+        #     print(path + "/step_curve_%d.txt" + " is missing")
+        #     continue
+        step_curve = np.load(path + "/step_curve_%d.npy" % i)
         a = step_curve[-2000:]
         res += [dict(zip(*np.unique(a, return_counts=True)))]
     return res

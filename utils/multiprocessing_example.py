@@ -17,7 +17,8 @@ def run_teleportation(i, eta, label_multiplicator=10):
     learning_curve = res["learning_curve"]
     learning_curve[learning_curve == 0] = 10000
     step_curve = learning_curve**-1
-    np.savetxt("results/eta_%d/step_curve_%d.txt" % (eta * label_multiplicator, i), step_curve, fmt="%.5f")
+    # np.savetxt("results/eta_%d/step_curve_%d.txt" % (eta * label_multiplicator, i), step_curve, fmt="%.5f")
+    np.save("results/eta_%d/step_curve_%d.npy" % (eta * label_multiplicator, i), step_curve)
 
 
 def run01(i):
