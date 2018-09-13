@@ -205,6 +205,10 @@ class ClipBrain(object):
         for edge in self.all_edges:
             edge.w_destination += edge.glow_destination * reward
 
+    def reset_glow(self):
+        for edge in self.all_edges:
+            edge.glow_destination = 0
+
     def get_h_vector(self, percept):
         percept_clip = find_clip(self.empty_action, percept)
         h_vector = np.array([edge.w_destination for edge in percept_clip.edges])
