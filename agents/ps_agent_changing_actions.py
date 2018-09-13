@@ -14,8 +14,8 @@ class ChangingActionsPSAgent(FlexiblePerceptsPSAgent):
     def _policy(self, percept_now):
         if self.policy_type == 'softmax':
             h_vector_now = self.ps_alpha * self.brain.get_h_vector(percept_now)
-            h_vector_now_mod = h_vector_now - np.max(h_vector_now)
-            h_vector_now_mod = h_vector_now_mod[self.available_actions]  # only consider available actions
+            h_vector_now_mod = h_vector_now[self.available_actions]  # only consider available actions
+            h_vector_now_mod = h_vector_now_mod - np.max(h_vector_now_mod)
             p_vector_now = np.exp(h_vector_now_mod) / np.sum(np.exp(h_vector_now_mod))
         elif self.policy_type == 'standard':
             h_vector_now = self.brain.get_h_vector(percept_now)
