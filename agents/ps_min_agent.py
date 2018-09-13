@@ -78,6 +78,9 @@ class BasicPSAgent(object):
             print('Please wait... I am deliberating')
 
         self._learning(reward)
+        if "reset_glow" in info and info["reset_glow"]:
+            self.history_since_last_reward = []
+            self.brain.reset_glow()
         percept_now = self._percept_preprocess(observation)
         action = self._policy(percept_now)
         self.history_since_last_reward += [(action, percept_now)]

@@ -9,7 +9,7 @@ class Interaction(object):
         self.agent = agent
         self.env = environment
 
-    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False):
+    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False, reset_glow=False):  # Note: reset_glow as an option here feels weird - should be an agent option
         learning_curve = np.zeros(n_trials)
         reward = 0
         info = {}
@@ -28,6 +28,8 @@ class Interaction(object):
             for t in range(max_steps_per_trial):
                 old_observation = observation
                 observation, reward, done, action, info = self.single_interaction_step_PS(observation, reward, info)
+                if reset_glow:
+                    info["reset_glow"] = done
                 reward_trial += float(reward)
                 if return_last_trial_history and i_trial == n_trials - 1:
                     last_trial_history += [(old_observation, action)]
