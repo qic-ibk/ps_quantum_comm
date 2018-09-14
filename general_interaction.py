@@ -22,7 +22,8 @@ class Interaction(object):
             if not isinstance(setup, tuple):
                 observation = setup
             else:
-                observation, info = setup
+                observation = setup[0]
+                info.update(setup[1])
             if i_trial == n_trials - 1:
                 last_trial_history = []
             for t in range(max_steps_per_trial):
