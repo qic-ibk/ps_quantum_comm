@@ -29,8 +29,8 @@ class FlexiblePerceptsPSAgent(BasicPSAgent):
     #
     #     self.history_since_last_reward = []
     #     self.percept_dict = {}
-    def __init__(self, n_actions, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense"):
-        BasicPSAgent.__init__(self, n_actions, [0], ps_gamma, ps_eta, policy_type, ps_alpha, brain_type)
+    def __init__(self, n_actions, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense", reset_glow=False):
+        BasicPSAgent.__init__(self, n_actions, [0], ps_gamma, ps_eta, policy_type, ps_alpha, brain_type, reset_glow)
         self.percept_dict = {}
 
     def _percept_preprocess(self, observation):
