@@ -48,6 +48,9 @@ class DenseBrain(object):
     def update_h_matrix(self, reward):
         self.h_matrix += self.g_matrix * reward
 
+    def reset_glow(self):
+        self.g_matrix = _DenseGMatrix(self.g_matrix.shape, dtype=np.float32)
+
     def add_percept(self):
         self.percept_buffer += 1
         if self.percept_buffer >= self.blocksize:

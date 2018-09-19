@@ -16,7 +16,7 @@ class BasicPSAgent(object):
 
     """
 
-    def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense"):
+    def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense", reset_glow=False):
         self.agent_wait_time = time()
         self.n_actions = n_actions
         self.n_percepts_multi = n_percepts_multi
@@ -40,6 +40,7 @@ class BasicPSAgent(object):
             raise ValueError("%s is not a supported brain_type" % brain_type)
 
         self.history_since_last_reward = []
+        self.reset_glow = reset_glow
 
     def _percept_preprocess(self, observation):  # preparing for creating a percept
         percept = observation[0]
@@ -72,12 +73,15 @@ class BasicPSAgent(object):
                 self.history_since_last_reward = []
                 self.brain.update_h_matrix(reward_now)
 
-    def deliberate_and_learn(self, observation, reward, info):  # this variant does nothing with info
+    def deliberate_and_learn(self, observation, reward, episode_finished, info):  # this variant does nothing with info
         if (time() - self.agent_wait_time) / 60 > 5:
             self.agent_wait_time = time()
             print('Please wait... I am deliberating')
 
         self._learning(reward)
+        if episode_finished and self.reset_glow:
+            self.history_since_last_reward = []
+            self.brain.reset_glow()
         percept_now = self._percept_preprocess(observation)
         action = self._policy(percept_now)
         self.history_since_last_reward += [(action, percept_now)]

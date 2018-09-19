@@ -31,7 +31,7 @@ class TimeGlowAgent(BasicPSAgent):
             self.history_since_last_reward = []
             self.brain.update_h_matrix(reward_now)
 
-    def deliberate_and_learn(self, observation, reward, info):
+    def deliberate_and_learn(self, observation, reward, episode_finished, info):
         if (time() - self.agent_wait_time) / 60 > 5:
             self.agent_wait_time = time()
             print('Please wait... I am deliberating')
@@ -41,6 +41,10 @@ class TimeGlowAgent(BasicPSAgent):
         time_now = info["time_now"]
 
         self._learning(reward, time_now)
+        if episode_finished and self.reset_glow:
+            self.history_since_last_reward = []
+            self.history_since_last_time_step = []
+            self.brain.reset_glow()
         percept_now = self._percept_preprocess(observation)
         action = self._policy(percept_now)
         if time_now != self.time_before:
