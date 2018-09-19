@@ -67,6 +67,9 @@ class SparseBrain(object):
     def update_h_matrix(self, reward):
         self.h_matrix += self.g_matrix * reward  # h- and g-matrices have in general different sparsity
 
+    def reset_glow(self):
+        self.g_matrix = _SparseGMatrix(self.g_matrix.shape, dtype=np.float32)
+
     def add_percept(self):
         self.percept_buffer += 1
         if self.percept_buffer >= self.blocksize:

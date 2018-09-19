@@ -12,6 +12,7 @@ class Interaction(object):
     def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False):
         learning_curve = np.zeros(n_trials)
         reward = 0
+        done = 0
         info = {}
         res = {}
         for i_trial in range(n_trials):
@@ -22,12 +23,13 @@ class Interaction(object):
             if not isinstance(setup, tuple):
                 observation = setup
             else:
-                observation, info = setup
+                observation = setup[0]
+                info.update(setup[1])
             if i_trial == n_trials - 1:
                 last_trial_history = []
             for t in range(max_steps_per_trial):
                 old_observation = observation
-                observation, reward, done, action, info = self.single_interaction_step_PS(observation, reward, info)
+                observation, reward, done, action, info = self.single_interaction_step_PS(observation, reward, done, info)
                 reward_trial += float(reward)
                 if return_last_trial_history and i_trial == n_trials - 1:
                     last_trial_history += [(old_observation, action)]
@@ -39,8 +41,8 @@ class Interaction(object):
             res["last_trial_history"] = last_trial_history
         return res
 
-    def single_interaction_step_PS(self, observation, reward, info):
-        action = self.agent.deliberate_and_learn(observation, reward, info)
+    def single_interaction_step_PS(self, observation, reward, done, info):
+        action = self.agent.deliberate_and_learn(observation, reward, done, info)
         res = self.env.move(action)
         if len(res) == 3:  # backwards compatibility
             res += ({},)
