@@ -17,12 +17,12 @@ class Interaction(object):
         for i_trial in range(n_trials):
             reward_trial = 0
             if i_trial % 500 == 0:
-                print("Trial %d now." % i_trial)
-            if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
-                observation, time_now = self.env.reset()
-                info = {"time_now": time_now}
+                print("Interaction is now starting trial %d of %d." % (i_trial, n_trials))
+            setup = self.env.reset()
+            if not isinstance(setup, tuple):
+                observation = setup
             else:
-                observation = self.env.reset()
+                observation, info = setup
             if i_trial == n_trials - 1:
                 last_trial_history = []
             for t in range(max_steps_per_trial):
@@ -41,9 +41,8 @@ class Interaction(object):
 
     def single_interaction_step_PS(self, observation, reward, info):
         action = self.agent.deliberate_and_learn(observation, reward, info)
-        if hasattr(self.env, "tracks_time") and self.env.tracks_time is True:
-            observation, reward, done, time_now = self.env.move(action)
-            info = {"time_now": time_now}
-        else:
-            observation, reward, done = self.env.move(action)
+        res = self.env.move(action)
+        if len(res) == 3:  # backwards compatibility
+            res += ({},)
+        observation, reward, done, info = res
         return observation, reward, done, action, info
