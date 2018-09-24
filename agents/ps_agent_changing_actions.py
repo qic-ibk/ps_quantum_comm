@@ -1,6 +1,7 @@
 """
 """
 import numpy as np
+from warnings import warn
 from .ps_agent_flexible_percepts import FlexiblePerceptsPSAgent
 
 
@@ -30,4 +31,6 @@ class ChangingActionsPSAgent(FlexiblePerceptsPSAgent):
     def deliberate_and_learn(self, observation, reward, episode_finished, info):
         if "available_actions" in info:
             self.available_actions = info["available_actions"]
+        else:
+            warn("ChangingActionsPSAgent did not receive list of available actions.")
         return FlexiblePerceptsPSAgent.deliberate_and_learn(self, observation, reward, episode_finished, info)
