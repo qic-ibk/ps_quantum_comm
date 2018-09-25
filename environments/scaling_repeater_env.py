@@ -3,7 +3,6 @@
 
 from __future__ import print_function, division
 from .abstract_environment import AbstractEnvironment
-import numpy as np
 from copy import deepcopy
 from itertools import chain
 try:
@@ -41,11 +40,19 @@ class _Action(object):
                 elif self.type == ACTION_SWAP:
                     return self.station == other.station
                 elif self.type == ACTION_COMPOSITE:
-                    return self.composite_id == other.composite_id and self.involved_pairs == other.involved_pairs
+                    return self.composite_id == other.composite_id and self.involved_links == other.involved_links
         return False
 
     def __neq__(self, other):  # python2 compatibility
         return not self.__eq__(other)
+
+    def __repr__(self):
+        if self.type == ACTION_PURIFY:
+            return "_Action(%s, %s)" % (self.type, repr(self.stations))
+        elif self.type == ACTION_SWAP:
+            return "_Action(%s, %s)" % (self.type, repr(self.station))
+        elif self.type == ACTION_COMPOSITE:
+            return "_Action(%s, %s)" % (self.type, repr([self.composite_id, self.involved_links, self.constituent_actions]))
 
 
 class _Pair(object):
@@ -63,32 +70,46 @@ class _Pair(object):
             self.stations = (j, i)
         self.fid = fid
 
+    def __repr__(self):
+        return "_Pair(%s, fid=%s)" % (repr(self.stations), repr(self.fid))
 
 
 class TaskEnvironment(AbstractEnvironment):
     """
     """
-    def __init__(self, length=2, additional_actions=[], q=0.57):
+    def __init__(self, length=2, composite_actions=[], q=0.57):
         self.length = length
-        self.additional_actions = additional_actions
         self.start_fid = (3 * q + 1) / 4
+        self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
         self.base_actions = [_Action(ACTION_SWAP, i) for i in range(1, self.length)] + [_Action(ACTION_PURIFY, pair.stations) for pair in self.state]
-        self.action_list = deepcopy(self.base_actions)  # not sure if deepcopy is necessary
-        return self.reset()
+        self.available_actions = [i for i in range(len(self.base_actions))]
+        self.action_list = deepcopy(self.base_actions)
+        self.composite_actions = composite_actions
+        self._recalc_composite_actions()
 
-    def _add_action(self, type, info):
+    def _add_action(self, type, info):  # inconsistent interface with _remove_action, but _remove_action should remain the way it is
         new_action = _Action(type, info)
         if new_action not in self.action_list:  # this works because of custom __eq__ method
             self.action_list += [new_action]
-        self.available_actions += [self.action_list.index(new_action)]  # this works because of custom __eq__ method
+        my_index = self.action_list.index(new_action)
+        if my_index not in self.available_actions:
+            self.available_actions += [self.action_list.index(new_action)]  # this works because of custom __eq__ method
+            self.available_actions.sort()
 
-    def _remove_action(self, type, info):
-        my_action = _Action(type, info)
-        if my_action in self.action_list:  # this works because of custom __eq__ method
-            my_index = self.action_list.index(my_action)
-            self.available_actions.remove(my_index)
+    def _remove_action(self, action):
+        if action in self.action_list:  # this works because of custom __eq__ method
+            my_index = self.action_list.index(action)
+            if my_index in self.available_actions:  # so we don't get errors when we remove an unavailable action
+                self.available_actions.remove(my_index)
         else:
-            raise ValueError("Action with type %s and info %s cannot be removed because it does not exist." % (type, str(info)))
+            raise ValueError("Action with type %s could not be removed because it does not exist." % action.type)
+
+    def _remove_composites_involving_station(self, station):
+        for action in filter(lambda x: x.type == ACTION_COMPOSITE, self.action_list):
+            for link in action.involved_links:
+                if station in link:
+                    self._remove_action(action)
+                    break
 
     def _purify(self, stations):
         pair = next(filter(lambda x: x.stations == stations, self.state), None)
@@ -114,42 +135,63 @@ class TaskEnvironment(AbstractEnvironment):
         self.state.remove(pair2)
         self.state += [_Pair((new_left, new_right), fid_new)]
         self.state.sort(key=lambda x: x.stations)
-        self._remove_action(ACTION_SWAP, station)
-        self._remove_action(ACTION_PURIFY, pair1.stations)
-        self._remove_action(ACTION_PURIFY, pair2.stations)
+        # now adjust actions appropriately
+        self._remove_action(_Action(ACTION_SWAP, station))
+        self._remove_action(_Action(ACTION_PURIFY, pair1.stations))
+        self._remove_action(_Action(ACTION_PURIFY, pair2.stations))
+        self._remove_composites_involving_station(station)
         self._add_action(ACTION_PURIFY, (new_left, new_right))
-        # self._recalc_actions()
+        self._recalc_composite_actions()
 
-    def _add_block_action(self, block_action):
-        """
-        """
-        pass
+    def _shift_actions(self, actions, involved_links):
+        involved_stations = [involved_links[0][0]] + [link[1] for link in involved_links]
+        shifted_actions = []
+        for action in actions:
+            if action.type == ACTION_SWAP:
+                my_station = involved_stations[action.station]
+                shifted_actions += [_Action(ACTION_SWAP, my_station)]
+            elif action.type == ACTION_PURIFY:
+                my_stations = (involved_stations[action.stations[0]], involved_stations[action.stations[1]])
+                shifted_actions += [_Action(ACTION_PURIFY, my_stations)]
+            else:
+                raise ValueError("Disallowed action of type %s found when trying to shift actions." % action.type)
+        return shifted_actions
 
-    # def _recalc_actions(self):
-    #     for pair in self.state:
-    #         if not _action_exists(ACTION_PURIFY, pair.stations):
-    #             self.action_list += [_Action(ACTION_PURIFY, pair.stations)]
-
-    # def _decode_action(self, action):
-    #     # actions are structured as follows:
-    #     # Action 0 is entanglement purification on all pairs that currently exist
-    #     # actions 1 to self.length are entanglement swapping on that station
-    #     # actions after that are the special composite actions specified by self.additional_actions
-    #     pass
+    def _recalc_composite_actions(self):
+        for composite_id, composite_action in enumerate(self.composite_actions):
+            block_size = composite_action["block_size"]
+            actions = composite_action["actions"]
+            num_locations = len(self.state) - (block_size - 1)
+            for i in range(num_locations):
+                involved_links = [pair.stations for pair in self.state[i:i + block_size]]
+                constituent_actions = self._shift_actions(actions, involved_links)  # often unnecessary but I don't know how to properly do it without
+                self._add_action(ACTION_COMPOSITE, [composite_id, involved_links, constituent_actions])
 
     def _observation(self):
-        """returns a flattened tuple of the current state"""
-        return tuple(chain(*((pair.left_station, pair.right_station, int(pair.fid * 100)) for pair in self.state)))
+        """Get a flattened tuple representation of the current state."""
+        return tuple(chain(*((pair.left_station, pair.right_station, int(pair.fid * 1000)) for pair in self.state)))
 
     def _check_success(self):
+        if len(self.state) == 1:
+            pair = self.state[0]
+            if pair.fid >= 0.9:
+                return True
         return False
 
-    def _check_finished(self):
+    def _check_failed(self):
+        for pair in self.state:
+            if pair.fid <= 0.5:
+                return True
         return False
+
+    def composite_action_from_history(self, history):
+        raise NotImplementedError
 
     def reset(self):
         self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
         self.available_actions = [i for i in range(len(self.base_actions))]
+        self._recalc_composite_actions()
+        # IMPORTANT: self.action_list is persistent between trials for consistent numbering of actions
         return self._observation(), {"available_actions": self.available_actions}
 
     def move(self, action):
@@ -161,7 +203,9 @@ class TaskEnvironment(AbstractEnvironment):
         elif my_action.type == ACTION_SWAP:
             self._entanglement_swapping(my_action.station)
         elif my_action.type == ACTION_COMPOSITE:
-            pass
+            for act in my_action.constituent_actions:
+                act_index = self.action_list.index(act)
+                self.move(act_index)
 
         observation = self._observation()
         if self._check_success():
@@ -169,6 +213,6 @@ class TaskEnvironment(AbstractEnvironment):
             episode_finished = 1
         else:
             reward = 0
-            episode_finished = int(self._check_finished())
+            episode_finished = int(self._check_failed())
 
         return observation, reward, episode_finished, {"available_actions": self.available_actions}
