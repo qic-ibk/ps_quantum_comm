@@ -58,3 +58,7 @@ class DenseBrain(object):
             self.h_matrix = np.hstack([self.h_matrix, np.ones((self.h_matrix.shape[0], self.blocksize), dtype=self.h_matrix.dtype)]).view(self.h_matrix.__class__)
             self.g_matrix = np.hstack([self.g_matrix, np.zeros((self.g_matrix.shape[0], self.blocksize), dtype=self.g_matrix.dtype)]).view(self.g_matrix.__class__)
             self.percept_buffer = 0
+
+    def add_action(self):
+        self.h_matrix = np.vstack([self.h_matrix, np.ones((1, self.h_matrix.shape[1]), dtype=self.h_matrix.dtype)]).view(self.h_matrix.__class__)
+        self.g_matrix = np.vstack([self.g_matrix, np.zeros((1, self.g_matrix.shape[1]), dtype=self.g_matrix.dtype)]).view(self.g_matrix.__class__)
