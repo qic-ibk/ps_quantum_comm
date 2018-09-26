@@ -213,3 +213,6 @@ class ClipBrain(object):
         percept_clip = find_clip(self.empty_action, percept)
         h_vector = np.array([edge.w_destination for edge in percept_clip.edges])
         return h_vector
+
+    def add_action(self):
+        raise NotImplementedError()
