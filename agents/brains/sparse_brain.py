@@ -1,6 +1,6 @@
 """A two-layer clip network with h and g matrices stored as sparse matrices."""
 
-from scipy.sparse import lil_matrix, hstack
+from scipy.sparse import lil_matrix, hstack, vstack
 import numpy as np
 
 
@@ -77,3 +77,7 @@ class SparseBrain(object):
             self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((self.h_matrix.shape[0], self.blocksize), dtype=self.h_matrix.dtype)], format="lil"))
             self.g_matrix = _SparseGMatrix(hstack([self.g_matrix, lil_matrix((self.g_matrix.shape[0], self.blocksize), dtype=self.g_matrix.dtype)], format="lil"))
             self.percept_buffer = 0
+
+    def add_action(self):
+        self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((1, self.h_matrix.shape[1]), dtype=self.h_matrix.dtype)], format="lil"))
+        self.g_matrix = _SparseHMatrix(hstack([self.g_matrix, lil_matrix((1, self.g_matrix.shape[1]), dtype=self.g_matrix.dtype)], format="lil"))
