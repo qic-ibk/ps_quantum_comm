@@ -35,7 +35,7 @@ class ChangingActionsPSAgent(FlexiblePerceptsPSAgent):
             warn("ChangingActionsPSAgent did not receive list of available actions.")
 
         if np.max(self.available_actions) >= self.n_actions:
-            for i in np.range(self.n_actions, np.max(self.available_actions) + 1):
+            for i in range(self.n_actions, np.max(self.available_actions) + 1):
                 self.n_actions += 1
                 self.brain.add_action()
 
