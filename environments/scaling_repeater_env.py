@@ -82,6 +82,7 @@ class TaskEnvironment(AbstractEnvironment):
         self.start_fid = (3 * q + 1) / 4
         self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
         self.base_actions = [_Action(ACTION_SWAP, i) for i in range(1, self.length)] + [_Action(ACTION_PURIFY, pair.stations) for pair in self.state]
+        self.n_base_actions = len(self.base_actions)
         self.available_actions = [i for i in range(len(self.base_actions))]
         self.action_list = deepcopy(self.base_actions)
         self.composite_actions = composite_actions
