@@ -186,7 +186,19 @@ class TaskEnvironment(AbstractEnvironment):
         return False
 
     def composite_action_from_history(self, history):
-        raise NotImplementedError
+        """Return a dictionary that can be used in a new environment with higher length.
+
+            history: list of (observation, action_index) tuples
+        """
+        action_sequence = []
+        for _, action_index in history:
+            action = self.action_list[action_index]
+            if action.type == ACTION_COMPOSITE:
+                for act in action.constituent_actions:
+                    action_sequence += [act]
+            else:
+                action_sequence += [action]
+        return {"block_size": self.length, "actions": action_sequence}
 
     def reset(self):
         self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
