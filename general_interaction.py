@@ -9,12 +9,39 @@ class Interaction(object):
         self.agent = agent
         self.env = environment
 
-    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False):
+    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=False, env_statistics={}):
+        """Run consecutive trials between agent and environment.
+
+        Parameters
+        ----------
+        n_trials : int
+            number of trials to be executed
+        max_steps_per_trial : int
+            limits the maximum number of steps per trial
+        return_last_trial_history : bool
+            whether to include the last trial in the output (default: False)
+        env_statistics : dict
+            keys are used as keys for the `res` dict
+            values are callables, usually environment methods
+
+        Returns:
+        res : dict
+            result dictionary that contains the following statistics
+
+            - `"learning_curve"` : np.ndarray
+                the learning curve, i.e. reward per step of each trial
+            - `"last_trial_history"` : list of tuples
+                key is only present if `return_last_trial_history` is True
+                tuples are of the form (observation, action)
+            - other keys as specified by `env_statistics` : list
+        """
         learning_curve = np.zeros(n_trials)
         reward = 0
         done = 0
         info = {}
         res = {}
+        for stat in env_statistics:
+            res[stat] = []
         for i_trial in range(n_trials):
             reward_trial = 0
             if i_trial % 500 == 0:
@@ -35,6 +62,8 @@ class Interaction(object):
                     last_trial_history += [(old_observation, action)]
                 if done:
                     learning_curve[i_trial] = reward_trial / (t + 1)
+                    for stat in env_statistics:
+                        res[stat] += [env_statistics[stat]()]
                     break
         res["learning_curve"] = learning_curve
         if return_last_trial_history:
