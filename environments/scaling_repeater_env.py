@@ -56,7 +56,7 @@ class _Action(object):
 
 
 class _Pair(object):
-    def __init__(self, stations, fid=1.0):
+    def __init__(self, stations, fid=1.0, resources=1.0):
         assert len(stations) == 2
         i = stations[0]
         j = stations[1]
@@ -69,9 +69,10 @@ class _Pair(object):
             self.right_station = i
             self.stations = (j, i)
         self.fid = fid
+        self.resources = resources
 
     def __repr__(self):
-        return "_Pair(%s, fid=%s)" % (repr(self.stations), repr(self.fid))
+        return "_Pair(%s, fid=%s, resources=%s)" % (repr(self.stations), repr(self.fid), repr(self.resources))
 
 
 class TaskEnvironment(AbstractEnvironment):
@@ -80,7 +81,7 @@ class TaskEnvironment(AbstractEnvironment):
     def __init__(self, length=2, composite_actions=[], q=0.57):
         self.length = length
         self.start_fid = (3 * q + 1) / 4
-        self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
+        self.state = [_Pair((i, i + 1), fid=self.start_fid, resources=1.0) for i in range(self.length)]
         self.base_actions = [_Action(ACTION_SWAP, i) for i in range(1, self.length)] + [_Action(ACTION_PURIFY, pair.stations) for pair in self.state]
         self.n_base_actions = len(self.base_actions)
         self.available_actions = [i for i in range(len(self.base_actions))]
@@ -92,18 +93,18 @@ class TaskEnvironment(AbstractEnvironment):
         new_action = _Action(type, info)
         if new_action not in self.action_list:  # this works because of custom __eq__ method
             self.action_list += [new_action]
-        my_index = self.action_list.index(new_action)
+        my_index = self.action_list.index(new_action)  # this works because of custom __eq__ method
         if my_index not in self.available_actions:
-            self.available_actions += [self.action_list.index(new_action)]  # this works because of custom __eq__ method
+            self.available_actions += [my_index]
             self.available_actions.sort()
 
     def _remove_action(self, action):
-        if action in self.action_list:  # this works because of custom __eq__ method
+        try:
             my_index = self.action_list.index(action)
-            if my_index in self.available_actions:  # so we don't get errors when we remove an unavailable action
-                self.available_actions.remove(my_index)
-        else:
+        except ValueError:
             raise ValueError("Action with type %s could not be removed because it does not exist." % action.type)
+        if my_index in self.available_actions:  # so we don't get errors when we remove an unavailable action
+            self.available_actions.remove(my_index)
 
     def _remove_composites_involving_station(self, station):
         for action in filter(lambda x: x.type == ACTION_COMPOSITE, self.action_list):
@@ -117,7 +118,9 @@ class TaskEnvironment(AbstractEnvironment):
         if pair is None:
             raise ValueError("There is no pair between stations %s that can be purified." % str(stations))
         f = pair.fid
-        pair.fid = (f**2 + (1 - f)**2 / 9) / (f**2 + 2 * f * (1 - f) / 3 + 5 * (1 - f)**2 / 9)  # directly modifies self.state
+        p_suc = f**2 + 2 * f * (1 - f) / 3 + 5 * (1 - f)**2 / 9
+        pair.fid = (f**2 + (1 - f)**2 / 9) / p_suc  # directly modifies self.state
+        pair.resources *= 2 / p_suc
 
     def _entanglement_swapping(self, station):
         pair1 = next(filter(lambda x: x.right_station == station, self.state), None)
@@ -134,7 +137,7 @@ class TaskEnvironment(AbstractEnvironment):
         assert new_right > new_left
         self.state.remove(pair1)
         self.state.remove(pair2)
-        self.state += [_Pair((new_left, new_right), fid_new)]
+        self.state += [_Pair((new_left, new_right), fid=fid_new, resources=pair1.resources + pair2.resources)]
         self.state.sort(key=lambda x: x.stations)
         # now adjust actions appropriately
         self._remove_action(_Action(ACTION_SWAP, station))
@@ -201,7 +204,7 @@ class TaskEnvironment(AbstractEnvironment):
         return {"block_size": self.length, "actions": action_sequence}
 
     def reset(self):
-        self.state = [_Pair((i, i + 1), fid=self.start_fid) for i in range(self.length)]
+        self.state = [_Pair((i, i + 1), fid=self.start_fid, resources=1.0) for i in range(self.length)]
         self.available_actions = [i for i in range(len(self.base_actions))]
         self._recalc_composite_actions()
         # IMPORTANT: self.action_list is persistent between trials for consistent numbering of actions
