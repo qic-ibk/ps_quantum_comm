@@ -79,5 +79,7 @@ class SparseBrain(object):
             self.percept_buffer = 0
 
     def add_action(self):
-        self.h_matrix = _SparseHMatrix(hstack([self.h_matrix, lil_matrix((1, self.h_matrix.shape[1]), dtype=self.h_matrix.dtype)], format="lil"))
-        self.g_matrix = _SparseHMatrix(hstack([self.g_matrix, lil_matrix((1, self.g_matrix.shape[1]), dtype=self.g_matrix.dtype)], format="lil"))
+        if self.mode != "h_zero":
+            raise RuntimeError("add_action method is not supported without mode 'h_zero'")
+        self.h_matrix = _SparseHMatrix(vstack([self.h_matrix, lil_matrix((1, self.h_matrix.shape[1]), dtype=self.h_matrix.dtype)], format="lil"))
+        self.g_matrix = _SparseGMatrix(vstack([self.g_matrix, lil_matrix((1, self.g_matrix.shape[1]), dtype=self.g_matrix.dtype)], format="lil"))
