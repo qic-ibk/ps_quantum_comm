@@ -4,8 +4,7 @@ import numpy as np
 
 class Interaction(object):
 
-    def __init__(self, agent_type, agent, environment):
-        self.agent_type = agent_type
+    def __init__(self, agent, environment):
         self.agent = agent
         self.env = environment
 
@@ -24,7 +23,8 @@ class Interaction(object):
             keys are used as keys for the `res` dict
             values are callables, usually environment methods
 
-        Returns:
+        Returns
+        -------
         res : dict
             result dictionary that contains the following statistics
 
