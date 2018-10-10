@@ -78,9 +78,12 @@ class _Pair(object):
 class TaskEnvironment(AbstractEnvironment):
     """
     """
-    def __init__(self, length=2, composite_actions=[], q=0.57):
+    def __init__(self, length=2, composite_actions=[], q=0.57, target_fid=0.9, reward_constant=1, reward_exponent=1):
         self.length = length
         self.start_fid = (3 * q + 1) / 4
+        self.target_fid = target_fid
+        self.reward_constant = reward_constant  # could simply define a function for this
+        self.reward_exponent = reward_exponent
         self.state = [_Pair((i, i + 1), fid=self.start_fid, resources=1.0) for i in range(self.length)]
         self.base_actions = [_Action(ACTION_SWAP, i) for i in range(1, self.length)] + [_Action(ACTION_PURIFY, pair.stations) for pair in self.state]
         self.n_base_actions = len(self.base_actions)
@@ -178,7 +181,7 @@ class TaskEnvironment(AbstractEnvironment):
     def _check_success(self):
         if len(self.state) == 1:
             pair = self.state[0]
-            if pair.fid >= 0.9:
+            if pair.fid >= self.target_fid:
                 return True
         return False
 
@@ -187,6 +190,12 @@ class TaskEnvironment(AbstractEnvironment):
             if pair.fid <= 0.5:
                 return True
         return False
+
+    def get_resources(self):
+        if self._check_success():
+            return self.state[0].resources
+        else:
+            return float("NaN")
 
     def composite_action_from_history(self, history):
         """Return a dictionary that can be used in a new environment with higher length.
@@ -225,7 +234,7 @@ class TaskEnvironment(AbstractEnvironment):
 
         observation = self._observation()
         if self._check_success():
-            reward = 1
+            reward = (self.reward_constant / self.state[0].resources)**self.reward_exponent
             episode_finished = 1
         else:
             reward = 0
