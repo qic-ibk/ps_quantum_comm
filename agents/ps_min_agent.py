@@ -1,19 +1,58 @@
+"""Includes the BasicPSAgent class."""
 from __future__ import division, print_function
 import numpy as np
 from time import time
-import agents.brains as brains
 
 
 class BasicPSAgent(object):
-    """PS agent implementation.
+    """Base class for PS agents. Includes only basic features.
 
-    parameters:
-    n_actions - number of available actions, constant
-    n_percepts - number of percepts, constant
-    ps_gamma, ps_eta - constants
-    policy_type - 'standard' or 'softmax'
-    ps_alpha - constant
+    Parameters
+    ----------
+    n_actions : int
+        Number of possible actions.
+    n_percepts_multi : int or list of ints
+        Number of percepts, possibly for different inputs.
+    ps_gamma : float
+        The forgetting parameter gamma.
+    ps_eta : float
+        The glow parameter eta.
+    policy_type : str
+        Selects with policy to use for converting h-values to probabilities.
+        "standard" for standard policy or "softmax" for softmax policy.
+    ps_alpha : float
+        Parameter alpha for the softmax policy. Does nothing if
+        `policy_type` is "standard".
+    brain_type : str
+        Which representation of the clip network to use. Supported types are
+        "dense" for dense matrix
+        "sparse" for sparse matrix
+        "clip" for object oriented clip network
+        (the default is "dense")
+    reset_glow : bool
+        If True, the glow matrix will be reset after every trial,
+        i.e. when the deliberate_and_learn method receives episode_finished
+        (the default is False).
 
+    Attributes
+    ----------
+    agent_wait_time : float
+        The initialisation time.
+    n_percepts : type
+        Number of possible percepts.
+    brain : Brain
+        A Brain object that represents the clip network.
+    history_since_last_reward : list of tuples
+        Collection of (observation, action) pairs since the last reward was
+        received. This is only used for more efficient update of the glow and
+        should not be interpreted as an actual memory.
+    n_actions
+    n_percepts_multi
+    policy_type
+    ps_gamma
+    ps_eta
+    ps_alpha
+    reset_glow
     """
 
     def __init__(self, n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense", reset_glow=False):
@@ -73,7 +112,28 @@ class BasicPSAgent(object):
                 self.history_since_last_reward = []
                 self.brain.update_h_matrix(reward_now)
 
-    def deliberate_and_learn(self, observation, reward, episode_finished, info):  # this variant does nothing with info
+    def deliberate_and_learn(self, observation, reward, episode_finished, info={}):  # this variant does nothing with info
+        """Learn according to reward, then select and return next action.
+
+        Parameters
+        ----------
+        observation : int or list of ints
+            The observation provided by the environment in the same format
+            as `n_percepts_multi` at init.
+        reward : float
+            The reward for the previously selected action.
+        episode_finished : int
+            1 if this is a new trial, else 0
+        info : dict
+            Dictionary of additional information passed to the agent.
+            This basic variant does nothing with it.
+
+        Returns
+        -------
+        int
+            The action selected.
+
+        """
         if (time() - self.agent_wait_time) / 60 > 5:
             self.agent_wait_time = time()
             print('Please wait... I am deliberating')
