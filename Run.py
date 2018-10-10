@@ -77,7 +77,7 @@ for i_param_scan in range(n_param_scan):
             agent = BasicPSAgent(env.actions(), env.percepts(), 0, 0.05, 'softmax', 1, brain_type="sparse")
             # n_actions, n_percepts_multi, ps_gamma, ps_eta, policy_type ('standard' or 'softmax'), ps_alpha
 
-        interaction = Interaction(agent_here, agent, env)
+        interaction = Interaction(agent, env)
         res = interaction.single_learning_life(n_trials, max_steps_per_trial)
         learning_curve, last_trial_history = res.learning_curve, res.last_trial_history
         average_learning_curve += learning_curve / n_agents
