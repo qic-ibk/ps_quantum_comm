@@ -5,6 +5,7 @@ from environments.scaling_repeater_env import TaskEnvironment as Env
 from agents.ps_agent_changing_actions import ChangingActionsPSAgent
 from general_interaction import Interaction
 import numpy as np
+from time import time
 # import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import pickle
@@ -19,7 +20,7 @@ eta = 0.3
 
 
 def setup_interaction(repeater_length, collection):
-    print("No. of collected actions:" + str(len(collection)))
+    # print("No. of collected actions:" + str(len(collection)))
     env = Env(length=repeater_length, composite_actions=collection, q=q_initial, reward_constant=reward_constants[repeater_length], reward_exponent=2)
     agent = ChangingActionsPSAgent(env.n_base_actions, 0, eta, "softmax", 1, "dense", reset_glow=True)
     interaction = Interaction(agent=agent, environment=env)
@@ -35,7 +36,8 @@ def run(aux):
     return interaction, res
 
 
-for repeater_length in range(2, 3):
+for repeater_length in range(2, 9):
+    start_time = time()
     aux = [(repeater_length, collected_action) for i in range(num_agents)]
     p = Pool(processes=num_processes)
     interactions, res_list = zip(*p.map(run, aux))
@@ -62,6 +64,7 @@ for repeater_length in range(2, 3):
         pickle.dump(block_action, f)
     with open("results/best_history_%d.pickle" % repeater_length, "wb") as f:
         pickle.dump(best_history, f)
+    print("repeater length %d took %.2f minutes" % (repeater_length, (time() - start_time) / 60))
     # plt.scatter(np.arange(1, len(best_resources) + 1), best_resources, s=20)
     # plt.yscale("log")
     # plt.axhline(y=reward_constants[repeater_length], color="r")
