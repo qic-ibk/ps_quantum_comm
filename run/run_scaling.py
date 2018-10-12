@@ -1,4 +1,5 @@
 """Run the scaling environment using blocks of different scales."""
+import os, sys; sys.path.insert(0, os.path.abspath("."))
 import environments.scaling_repeater_env as sr
 from environments.scaling_repeater_env import TaskEnvironment as Env
 from agents.ps_agent_changing_actions import ChangingActionsPSAgent
@@ -6,13 +7,14 @@ from general_interaction import Interaction
 import numpy as np
 # import matplotlib.pyplot as plt
 from multiprocessing import Pool
+import pickle
 
-num_processes = 2
+num_processes = 64
 # reward_constants = [0, 0, 8686, 23626, 78887, 261237, 226018, 404088, 712699]  # for default q=0.57
 reward_constants = [0, 0, 55, 298, 511, 1729, 2735, 3644, 4686]  # for q=0.8
 collected_action = []
-num_agents = 4
-q_initial = 0.8
+num_agents = 128
+q_initial = 0.75
 eta = 0.3
 
 
@@ -33,8 +35,7 @@ def run(aux):
     return interaction, res
 
 
-
-for repeater_length in range(2, 9):
+for repeater_length in range(2, 3):
     aux = [(repeater_length, collected_action) for i in range(num_agents)]
     p = Pool(processes=num_processes)
     interactions, res_list = zip(*p.map(run, aux))
@@ -56,6 +57,11 @@ for repeater_length in range(2, 9):
     collected_action += [block_action]
     # plot best resource curve
     best_resources = res_list[min_index]["resources"]
+    np.save("results/best_resources_%d.npy" % repeater_length, best_resources)
+    with open("results/block_action_%d.pickle" % repeater_length, "wb") as f:
+        pickle.dump(block_action, f)
+    with open("results/best_history_%d.pickle" % repeater_length, "wb") as f:
+        pickle.dump(best_history, f)
     # plt.scatter(np.arange(1, len(best_resources) + 1), best_resources, s=20)
     # plt.yscale("log")
     # plt.axhline(y=reward_constants[repeater_length], color="r")
