@@ -13,9 +13,10 @@ import pickle
 num_processes = 64
 # reward_constants = [0, 0, 8686, 23626, 78887, 261237, 226018, 404088, 712699]  # for default q=0.57
 reward_constants = [0, 0, 55, 298, 511, 1729, 2735, 3644, 4686]  # for q=0.8
+# reward_constants = [0, 0, 142, 764, 1309, 4427, 7001, 9328, 11997]  # for q=0.75
 collected_action = []
 num_agents = 128
-q_initial = 0.75
+q_initial = 0.8
 eta = 0.3
 
 
