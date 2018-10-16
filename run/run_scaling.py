@@ -12,7 +12,7 @@ import pickle
 
 num_processes = 64
 # reward_constants = [0, 0, 8686, 23626, 78887, 261237, 226018, 404088, 712699]  # for default q=0.57
-reward_constants = [0, 0, 55, 298, 511, 1729, 2735, 3644, 4686]  # for q=0.8
+reward_constants = [55.530075111293556, 298.8066811742171, 511.3369612524592, 1729.5926924526652, 2735.132853627021, 3644.117803177942, 4686.472277498218]  # for q=0.8
 # reward_constants = [0, 0, 142, 764, 1309, 4427, 7001, 9328, 11997]  # for q=0.75
 collected_action = []
 num_agents = 128
@@ -45,6 +45,8 @@ for repeater_length in range(2, 9):
     resource_list = [res["resources"][-1] for res in res_list]
     p.close()
     p.join()
+    np.savetxt("results/resource_list.txt", resource_list)
+    exit()
     try:
         min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
     except ValueError:  # if all values are NaN
@@ -104,10 +106,13 @@ def generate_constant(repeater_length, q_noise, working_fidelity, target_fidelit
     return env.get_resources()
 
 
+auxlist = []
 for i in range(2, 9):
     ffs = np.arange(0.85, 0.999, 0.001)
     y = [generate_constant(i, q_initial, j, 0.9) for j in ffs]
     print(i, np.min(y))
+    auxlist += [np.min(y)]
     # plt.plot(ffs, y)
     # plt.title(str(i))
     # plt.show()
+print(auxlist)
