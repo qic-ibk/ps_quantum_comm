@@ -25,7 +25,18 @@ for i in range(2, 9):
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
     plt.axhline(y=naive_constants[i], color="r")
-    plt.title("repeater length: " + str(i))
+    if naive_constants[i] != found_constants[i]:
+        plt.axhline(y=found_constants[i], color="b")
+    plt.title("repeater length: " + str(i) + " ; best solution found")
+    plt.ylabel("resources used")
+    plt.xlabel("trial number")
     plt.show()
 
 print(aux)
+
+a = np.loadtxt("results/resource_list.txt")
+plt.hist(a, bins=30)
+plt.ylabel("number of agents")
+plt.xlabel("resources of found solution")
+plt.title("repeater_length = 2")
+plt.show()
