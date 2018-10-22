@@ -4,8 +4,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+num_agents = 100
+# etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+result_path = "results/teleportation/clifford_gates/raw/"
+# result_path_universal = "results/teleportation/universal_gates/raw/"
 
-def get_step_dicts(path, num=64):
+
+def get_step_dicts(path, num=100):
     res = []
     for i in range(num):
         print(i)
@@ -66,7 +71,7 @@ def solution_steps_vectorized(mylist):
 
 
 if __name__ == "__main__":
-    dict_lists = [get_step_dicts("./results/128_agents_60k_trials/eta_%d" % k, num=128) for k in [1, 15, 2, 3, 4, 5]]  # [1, 15, 2, 25, 3, 35, 4, 45, 5]]
+    dict_lists = [get_step_dicts(result_path + "eta_%d" % k, num=num_agents) for k in [1, 15, 2, 25, 3, 4, 5]]  # [1, 15, 2, 25, 3, 35, 4, 45, 5]]
     solution_count_array = [count_solutions_vectorized(dict_list) for dict_list in dict_lists]
     # solution_steps_array = [solution_steps_vectorized(dict_list) for dict_list in dict_lists]
     cumulative_steps_array = [cumulative_steps_vectorized(dict_list) for dict_list in dict_lists]
@@ -92,23 +97,23 @@ if __name__ == "__main__":
     plt.savefig("presentation_cumulative_steps.png")
     plt.show()
 
-    # cumulative_steps_array = [csteps[csteps != 0] for csteps in cumulative_steps_array]
-    # amounts = [len(csteps) / 128.0 for csteps in cumulative_steps_array]
-    # my_array = [np.sum(csteps) / len(csteps) for csteps in cumulative_steps_array]
-    # fig, ax1 = plt.subplots()
-    # ax2 = ax1.twinx()
-    # # plt.grid()
-    # ax1.scatter([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], my_array)
-    # ax1.set_ylim(28, 36)
-    # ax1.set_xlabel("glow parameter η")
-    # ax1.set_ylabel("average number of cumulative_steps", color="C0")
-    # ax2.plot([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], amounts, "C1-")
-    # ax2.set_ylabel("fraction of agents with all 4 solutions", color="C1")
-    # ax2.set_ylim(0, 1)
-    # # plt.rc('text', usetex=True)
-    # # plt.rc('font', family='serif')
-    # # plt.xlabel(r"$\eta$")
-    # plt.show()
+    cumulative_steps_array = [csteps[csteps != 0] for csteps in cumulative_steps_array]
+    amounts = [len(csteps) / 128.0 for csteps in cumulative_steps_array]
+    my_array = [np.sum(csteps) / len(csteps) for csteps in cumulative_steps_array]
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    # plt.grid()
+    ax1.scatter([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], my_array)
+    ax1.set_ylim(28, 36)
+    ax1.set_xlabel("glow parameter η")
+    ax1.set_ylabel("average number of cumulative_steps", color="C0")
+    ax2.plot([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5], amounts, "C1-")
+    ax2.set_ylabel("fraction of agents with all 4 solutions", color="C1")
+    ax2.set_ylim(0, 1)
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif')
+    # plt.xlabel(r"$\eta$")
+    plt.show()
 
 exit()
 
