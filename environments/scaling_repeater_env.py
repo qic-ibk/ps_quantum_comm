@@ -219,6 +219,13 @@ class TaskEnvironment(AbstractEnvironment):
         # IMPORTANT: self.action_list is persistent between trials for consistent numbering of actions
         return self._observation(), {"available_actions": self.available_actions}
 
+    def _reward_function(self, resources):
+        reward = (self.reward_constant / resources)**self.reward_exponent
+        if reward > 1:
+            self.reward_constant = resources
+            reward = 1
+        return reward
+
     def move(self, action):
         if action not in self.available_actions:
             raise ValueError("Action with number %s is not available at this time." % action)
@@ -234,7 +241,7 @@ class TaskEnvironment(AbstractEnvironment):
 
         observation = self._observation()
         if self._check_success():
-            reward = (self.reward_constant / self.state[0].resources)**self.reward_exponent
+            reward = self._reward_function(self.state[0].resources)
             episode_finished = 1
         else:
             reward = 0
