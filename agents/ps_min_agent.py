@@ -134,9 +134,9 @@ class BasicPSAgent(object):
             The action selected.
 
         """
-        if (time() - self.agent_wait_time) / 60 > 5:
-            self.agent_wait_time = time()
-            print('Please wait... I am deliberating')
+        # if (time() - self.agent_wait_time) / 60 > 5:
+        #     self.agent_wait_time = time()
+        #     print('Please wait... I am deliberating')
 
         self._learning(reward)
         if episode_finished and self.reset_glow:
