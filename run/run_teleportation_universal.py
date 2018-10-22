@@ -1,4 +1,5 @@
 from __future__ import division, print_function
+import os, sys; sys.path.insert(0, os.path.abspath("."))
 from time import time
 from environments.teleportation_universal_env import TaskEnvironment as TeleportationUniversalEnv
 # from environments.teleportation_env import TaskEnvironment as TeleportationEnv
