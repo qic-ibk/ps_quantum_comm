@@ -20,7 +20,7 @@ def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     np.random.seed()
     env = TeleportationEnv()
     agent = FlexiblePerceptsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")
-    interaction = Interaction(agent_type="FlexiblePerceptsPSAgent", agent=agent, environment=env)
+    interaction = Interaction(agent=agent, environment=env)
     res = interaction.single_learning_life(n_trials=n_trials, max_steps_per_trial=50)
     learning_curve = res["learning_curve"]
     success_list = np.ones(len(learning_curve), dtype=np.int)
