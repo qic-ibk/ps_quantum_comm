@@ -9,7 +9,7 @@ from multiprocessing import Pool
 import numpy as np
 import os
 
-num_processes = 2  # change according to cluster computer you choose
+num_processes = 64  # change according to cluster computer you choose
 num_agents = 100
 etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
 n_trials = 60000
@@ -47,8 +47,8 @@ class RunCallable(object):  # this solution is necessary because only top-level 
         return run_teleportation(i, self.eta, label_multiplicator=get_label_multiplicator(self.eta))
 
 
-def callback_error(result):
-    print('error', result)
+# def callback_error(result):
+#     print('error', result)
 
 
 if __name__ == "__main__":
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         if not os.path.exists(result_path + "eta_%d/" % (eta * get_label_multiplicator(eta))):
             os.makedirs(result_path + "eta_%d/" % (eta * get_label_multiplicator(eta)))
         my_callable = RunCallable(eta)
-        p.map_async(my_callable, np.arange(num_agents), error_callback=callback_error)
+        p.map_async(my_callable, np.arange(num_agents))
     p.close()
     p.join()
     print("The whole script took %.2f minutes." % ((time() - start_time) / 60))
