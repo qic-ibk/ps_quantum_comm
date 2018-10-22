@@ -3,7 +3,8 @@ import os, sys; sys.path.insert(0, os.path.abspath("."))
 from time import time
 from environments.teleportation_universal_env import TaskEnvironment as TeleportationUniversalEnv
 # from environments.teleportation_env import TaskEnvironment as TeleportationEnv
-from agents.ps_agent_flexible_percepts import FlexiblePerceptsPSAgent
+# from agents.ps_agent_flexible_percepts import FlexiblePerceptsPSAgent
+from agents.ps_agent_changing_actions import ChangingActionsPSAgent
 from general_interaction import Interaction
 from multiprocessing import Pool
 import numpy as np
@@ -19,7 +20,7 @@ result_path = "results/teleportation/universal_gates/raw/"
 def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     np.random.seed()
     env = TeleportationUniversalEnv()
-    agent = FlexiblePerceptsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")
+    agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")
     interaction = Interaction(agent=agent, environment=env)
     res = interaction.single_learning_life(n_trials=n_trials, max_steps_per_trial=50)
     learning_curve = res["learning_curve"]
