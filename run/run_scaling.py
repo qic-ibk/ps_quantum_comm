@@ -10,7 +10,7 @@ from time import time
 from multiprocessing import Pool
 import pickle
 
-num_processes = 64
+num_processes = 48
 # reward_constants = [0, 0, 8686, 23626, 78887, 261237, 226018, 404088, 712699]  # for default q=0.57
 reward_constants = [55.530075111293556, 298.8066811742171, 511.3369612524592, 1729.5926924526652, 2735.132853627021, 3644.117803177942, 4686.472277498218]  # for q=0.8
 # reward_constants = [0, 0, 142, 764, 1309, 4427, 7001, 9328, 11997]  # for q=0.75
@@ -45,8 +45,8 @@ for repeater_length in range(2, 9):
     resource_list = [res["resources"][-1] for res in res_list]
     p.close()
     p.join()
-    np.savetxt("results/resource_list.txt", resource_list)
-    exit()
+    np.savetxt("results/resource_list_%d.txt" % repeater_length, resource_list)
+    # exit()
     try:
         min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
     except ValueError:  # if all values are NaN
