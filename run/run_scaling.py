@@ -17,7 +17,7 @@ reward_constants = [55.530075111293556, 298.8066811742171, 511.3369612524592, 17
 collected_action = []
 num_agents = 128
 q_initial = 0.8
-eta = 0.3
+eta = 0
 
 
 def setup_interaction(repeater_length, collection):
