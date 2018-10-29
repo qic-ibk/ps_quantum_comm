@@ -47,7 +47,7 @@ class Interaction(object):
             res[stat] = []
         for i_trial in range(n_trials):
             reward_trial = 0
-            if i_trial % 1000 == 0:
+            if verbose_trial_count and i_trial % 1000 == 0:
                 print("Interaction is now starting trial %d of %d." % (i_trial, n_trials))
             setup = self.env.reset()
             if not isinstance(setup, tuple):
