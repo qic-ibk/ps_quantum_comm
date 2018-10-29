@@ -9,8 +9,9 @@ from time import time
 # import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import pickle
+import traceback
 
-num_processes = 48
+num_processes = 64
 # reward_constants = [0, 0, 8686, 23626, 78887, 261237, 226018, 404088, 712699]  # for default q=0.57
 reward_constants = [55.530075111293556, 298.8066811742171, 511.3369612524592, 1729.5926924526652, 2735.132853627021, 3644.117803177942, 4686.472277498218]  # for q=0.8
 # reward_constants = [0, 0, 142, 764, 1309, 4427, 7001, 9328, 11997]  # for q=0.75
@@ -29,12 +30,18 @@ def setup_interaction(repeater_length, collection):
 
 
 def run(aux):
-    np.random.seed()
-    repeater_length = aux[0]
-    collection = aux[1]
-    interaction = setup_interaction(repeater_length, collection)
-    res = interaction.single_learning_life(10000, 500, True, env_statistics={"resources": interaction.env.get_resources})
-    return interaction, res
+    try:
+        np.random.seed()
+        repeater_length = aux[0]
+        collection = aux[1]
+        interaction = setup_interaction(repeater_length, collection)
+        res = interaction.single_learning_life(10000, 500, True, env_statistics={"resources": interaction.env.get_resources})
+        return interaction, res
+    except Exception:
+        print("Exception occured in child process")
+        traceback.print_exc()
+        raise
+
 
 
 for repeater_length in range(2, 9):
