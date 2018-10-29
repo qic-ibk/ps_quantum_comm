@@ -57,7 +57,7 @@ class Interaction(object):
                 info.update(setup[1])
             if i_trial == n_trials - 1:
                 last_trial_history = []
-            for i_step in range(max_steps_per_trial):
+            for i_step in range(1, max_steps_per_trial + 1):
                 old_observation = observation
                 observation, reward, episode_finished, action, info = self.single_interaction_step_PS(observation, reward, episode_finished, info)
                 reward_trial += float(reward)
