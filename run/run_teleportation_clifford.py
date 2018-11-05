@@ -12,8 +12,8 @@ import os
 
 num_processes = 64  # change according to cluster computer you choose
 num_agents = 100
-etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-n_trials = 60000
+etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75]
+n_trials = 100000
 result_path = "results/teleportation/clifford_gates/raw/"
 
 
@@ -33,7 +33,7 @@ def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
         success_list = success_list[0::sparsity]
     # np.savetxt("results/eta_%d/step_curve_%d.txt" % (eta * label_multiplicator, i), step_curve, fmt="%.5f")
     np.save(result_path + "eta_%d/step_curve_%d.npy" % (eta * label_multiplicator, i), step_curve)
-    np.savetxt(result_path + "eta_%d/success_list_%d.txt" % (eta * label_multiplicator, i), fmt="%-d")
+    np.savetxt(result_path + "eta_%d/success_list_%d.txt" % (eta * label_multiplicator, i), success_list, fmt="%-d")
 
 
 def get_label_multiplicator(eta):
