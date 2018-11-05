@@ -21,13 +21,13 @@ result_path = "results/teleportation/clifford_gates/raw/"
 def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     np.random.seed()
     env = TeleportationEnv()
-    agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")
+    agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense", reset_glow=True)
     interaction = Interaction(agent=agent, environment=env)
     res = interaction.single_learning_life(n_trials=n_trials, max_steps_per_trial=50)
     learning_curve = res["learning_curve"]
     success_list = np.ones(len(learning_curve), dtype=np.int)
     success_list[learning_curve == 0] = 1
-    learning_curve[learning_curve == 0] = 10000
+    learning_curve[learning_curve == 0] = 10**-4
     step_curve = learning_curve**-1
     if sparsity != 1:
         step_curve = step_curve[0::sparsity]
