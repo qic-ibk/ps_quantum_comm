@@ -8,8 +8,7 @@ import os
 
 num_agents = 100
 sparsity = 10
-# etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
-etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 result_path_clifford = "results/teleportation/clifford_gates/raw/"
 result_path_universal = "results/teleportation/universal_gates/raw/"
 plot_path_clifford = "results/teleportation/clifford_gates/plot_ready/"
