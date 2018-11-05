@@ -9,7 +9,6 @@ from general_interaction import Interaction
 from multiprocessing import Pool
 import numpy as np
 import os
-import traceback
 
 num_processes = 64  # change according to cluster computer you choose
 num_agents = 100
@@ -27,7 +26,7 @@ def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     learning_curve = res["learning_curve"]
     success_list = np.ones(len(learning_curve), dtype=np.int)
     success_list[learning_curve == 0] = 1
-    learning_curve[learning_curve == 0] = 10**-4
+    learning_curve[learning_curve == 0] = 10000
     step_curve = learning_curve**-1
     if sparsity != 1:
         step_curve = step_curve[0::sparsity]
@@ -46,12 +45,8 @@ class RunCallable(object):  # this solution is necessary because only top-level 
         self.eta = eta
 
     def __call__(self, i):
-        try:
-            return run_teleportation(i, self.eta, label_multiplicator=get_label_multiplicator(self.eta))
-        except Exception:
-            print("Exception occured in child process")
-            traceback.print_exc()  # so exception in child process gets output on older python versions
-            raise
+        return run_teleportation(i, self.eta, label_multiplicator=get_label_multiplicator(self.eta))
+
 
 # def callback_error(result):
 #     print('error', result)
