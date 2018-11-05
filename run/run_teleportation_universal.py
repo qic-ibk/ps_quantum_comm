@@ -26,7 +26,7 @@ def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     learning_curve = res["learning_curve"]
     success_list = np.ones(len(learning_curve), dtype=np.int)
     success_list[learning_curve == 0] = 1
-    learning_curve[learning_curve == 0] = 10000
+    learning_curve[learning_curve == 0] = 10**-4
     step_curve = learning_curve**-1
     if sparsity != 1:
         step_curve = step_curve[0::sparsity]
