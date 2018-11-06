@@ -53,7 +53,7 @@ def cumulative_steps(count_dict, failure_number=10000):
         return np.sum([length for count, length in auxlist])
     elif len(auxlist) == 3:
         aux = max(auxlist, key=lambda x: x[0])
-        length_list = [length for count, length in auxlist] + [aux[0]]
+        length_list = [length for count, length in auxlist] + [aux[1]]
         return np.sum([length_list])
     else:
         raise ValueError("Could not compute cumulative_steps for " + repr(count_dict))
@@ -69,8 +69,7 @@ def evaluate(result_path, plot_path):
         step_curves = get_step_curves(eta_result_path, num=num_agents, to_txt_path=eta_plot_path)
         count_dicts = [count_dict(step_curve) for step_curve in step_curves]
         cumulative_steps_list = np.array([cumulative_steps(count) for count in count_dicts])
-        aux = cumulative_steps_list[cumulative_steps_list != np.nan]
-        print(aux)
+        aux = cumulative_steps_list[np.logical_not(np.isnan(cumulative_steps_list))]
         average_length = np.sum(aux, axis=0) / len(aux)
         agent_fraction = len(aux) / num_agents
         average_length_list += [average_length]
@@ -79,7 +78,7 @@ def evaluate(result_path, plot_path):
         my_example = step_curves[0]
         my_example[my_example == 10000] = 50
         np.savetxt(eta_plot_path + "example_agent_sparsity_%d.txt" % sparsity, my_example, fmt="%-d")
-        plt.scatter(np.arange(1, len(my_example) + 1, sparsity), my_example)
+        plt.scatter(np.arange(1, len(my_example) * sparsity + 1, sparsity), my_example)
         plt.title("Example agent for η=%.2f" % eta)
         plt.xlabel("Trial number")
         plt.ylabel("Number of steps")
@@ -91,8 +90,8 @@ def evaluate(result_path, plot_path):
             curve[curve == 10000] = 50
         average_curve = np.sum(step_curves, axis=0) / num_agents
         np.savetxt(eta_plot_path + "average_curve_sparsity_%d.txt" % sparsity, average_curve, fmt="%.6f")
-        plt.plot(np.arange(1, len(average_curve) + 1, sparsity), average_curve)
-        plt.title("Average of %d agents" % num_agents)
+        plt.plot(np.arange(1, len(average_curve) * sparsity + 1, sparsity), average_curve)
+        plt.title("Average of %d agents for η=%.2f" % (num_agents, eta))
         plt.xlabel("Trial number")
         plt.ylabel("Number of steps")
         plt.savefig(eta_plot_path + "average_curve.png")
@@ -100,17 +99,17 @@ def evaluate(result_path, plot_path):
     # now analysis for different etas
     np.savetxt(plot_path + "average_solution_length.txt", average_length_list, fmt="%.6f")
     np.savetxt(plot_path + "fraction_of_agents.txt", agent_fraction_list, fmt="%.6f")
-    np.savetxt(plot_path + "etas.txt", fmt="%.2f")
+    np.savetxt(plot_path + "etas.txt", etas, fmt="%.2f")
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
     # plt.grid()
     ax1.scatter(etas, average_length_list, c="C0")
-    ax1.set_ylim(28, 36)
+    # ax1.set_ylim(28, 36)
     ax1.set_xlabel("glow parameter η")
     ax1.set_ylabel("average number of cumulative_steps", color="C0")
     ax2.plot(etas, agent_fraction_list, "C1-")
     ax2.set_ylabel("fraction of agents with all 4 solutions", color="C1")
-    ax2.set_ylim(0, 1)
+    ax2.set_ylim(-0.05, 1.05)
     plt.savefig(plot_path + "eta_analysis.png")
     plt.show()
 
