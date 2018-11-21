@@ -8,7 +8,7 @@ import numpy as np
 
 eta = 0
 n_agents = 1
-n_trials = 500
+n_trials = 120000
 
 results = []
 for i_agent in range(n_agents):
@@ -21,6 +21,7 @@ for i_agent in range(n_agents):
 for res in results:
     reward_curve = res["reward_curve"] + 10**-30
     plt.scatter(np.arange(len(reward_curve)), reward_curve)
-    plt.ylim(10**-30, np.max(reward_curve))
-    plt.yscale("log")
+    # plt.ylim(10**-30, np.max(reward_curve))
+    # plt.yscale("log")
+    plt.ylim = (0, 1.05)
     plt.show()

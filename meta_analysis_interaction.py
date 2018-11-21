@@ -35,10 +35,11 @@ class MetaAnalysisInteraction(object):
         episode_finished = episode_finished
         while not episode_finished:
             action = agent.deliberate_and_learn(observation, reward, episode_finished, info)
+            # action = int(input(repr((observation, reward, episode_finished, info)) + "\n Action: "))  # debugging
             partial_multiverse_trial.history_of_branch += [(list(observation), action)]  # important to create copy of list, because environment may modify the observation in-place
             split, split_actions = env.is_splitting_action(action)
             if split is True:
-                new_agent = deepcopy(agent)
+                new_agent = agent  # we don't need the very slow deepcopy here, because we do not use the built-in learning features of the agent
                 new_env = deepcopy(env)
                 new_branch_action = split_actions[1]
                 new_observation, new_reward, new_episode_finished, new_info = new_env.move(new_branch_action)
@@ -50,7 +51,7 @@ class MetaAnalysisInteraction(object):
         return  # something
 
     def multiverse_reward(self, partial_trial_list, depolarize=False):
-        # this method probably should belong to the environment instead, but it would be a bit weird with the environment creating new env objects
+        # this method should belong to the environment instead
         accepted_branches = filter(lambda x: x.env.percept_now[-1] == 14, partial_trial_list)
         env_list = [branch.env for branch in accepted_branches]
         if env_list == []:  # if no branches were accepted, give no reward
@@ -65,8 +66,6 @@ class MetaAnalysisInteraction(object):
             new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
             new_state = mat.wnoise(new_state, 0, pp)
         for i in range(1, 1):
-            # if probability == 0:
-            #     print(i, probability, new_state)
             input_state = mat.tensor(new_state, new_state)
             input_state = mat.reorder(input_state, [0, 2, 1, 3])
             for env, action_list in zip(env_list, accepted_actions_lists):
@@ -81,7 +80,7 @@ class MetaAnalysisInteraction(object):
                 pp = (4 * fid - 1) / 3
                 new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
                 new_state = mat.wnoise(new_state, 0, pp)
-        my_env = env_list[0]
+        my_env = EPPEnv()
         my_env.reset()
         initial_fidelity = fidelity(mat.ptrace(my_env.state, [1, 3]))
         # # if (fidelity(new_state) - initial_fidelity) > 0:
@@ -89,14 +88,19 @@ class MetaAnalysisInteraction(object):
         # # else:
         # #     return 0
         # reward = probability / 10**-12 * max(fidelity(new_state) - initial_fidelity, 0)
-        reward = probability * max(fidelity(new_state) - initial_fidelity, 0) / 0.6634 / (1 - 0.8154959300572808)
+        delta_f = (fidelity(new_state) - initial_fidelity)
+        if delta_f < 10**-15:
+            reward = 0
+        else:
+            reward = probability * delta_f / 0.7048 / (0.7675936435868332 - 0.73)
+            # print(probability, (fidelity(new_state) - initial_fidelity))
+            # print(accepted_actions_lists)
         return reward
 
     def merge_reward(self, reward):
         # note: this has weird behavior when glow is active because of the different length of solutions
-        self.primary_agent._learning(reward)
-        self.primary_agent.brain.reset_glow()
-        for partial_trial in self.partial_trial_list[1:]:
+        self.primary_agent.history_since_last_reward = []  # just to make it explicit
+        for partial_trial in self.partial_trial_list:
             branch_history = partial_trial.history_of_branch
             # we need percepts instead of observations - this also makes sure that new percepts are all added correctly
             # we also need to recover primitive actions from the history
@@ -115,7 +119,7 @@ class MetaAnalysisInteraction(object):
             episode_finished = 0  # same
             info = {}
             self.partial_trial_list = []
-            if verbose_trial_count and i_trial % 100 == 0:
+            if verbose_trial_count and i_trial % 1000 == 0:
                 print("Interaction is now starting trial %d of %d." % (i_trial, n_trials))
             setup = self.primary_env.reset()
             if not isinstance(setup, tuple):
