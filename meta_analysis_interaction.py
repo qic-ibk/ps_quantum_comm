@@ -7,11 +7,6 @@ from environments.libraries import matrix as mat
 from environments.epp_env import EPPEnv
 
 
-def fidelity(rho):
-    fid = np.dot(np.dot(mat.H(mat.phiplus), rho), mat.phiplus)
-    return float(fid[0, 0])
-
-
 class PartialMultiverseTrial(object):
     """
     """
@@ -50,53 +45,6 @@ class MetaAnalysisInteraction(object):
             observation, reward, episode_finished, info = env.move(branch_action)
         return  # something
 
-    def multiverse_reward(self, partial_trial_list, depolarize=False):
-        # this method should belong to the environment instead
-        accepted_branches = filter(lambda x: x.env.percept_now[-1] == 14, partial_trial_list)
-        env_list = [branch.env for branch in accepted_branches]
-        if env_list == []:  # if no branches were accepted, give no reward
-            return 0
-        accepted_actions_lists = [env.percept_now for env in env_list]
-        probability = np.sum([env.branch_probability for env in env_list])
-        new_state = np.sum([env.branch_probability * env.get_pair_state() for env in env_list], axis=0)
-        new_state = new_state / np.trace(new_state)
-        if depolarize is True:
-            fid = fidelity(new_state)
-            pp = (4 * fid - 1) / 3
-            new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
-            new_state = mat.wnoise(new_state, 0, pp)
-        for i in range(1, 1):
-            input_state = mat.tensor(new_state, new_state)
-            input_state = mat.reorder(input_state, [0, 2, 1, 3])
-            for env, action_list in zip(env_list, accepted_actions_lists):
-                env.reset(input_state=input_state)
-                for action in action_list:
-                    env.move(action)
-            probability *= np.sum([env.branch_probability for env in env_list])
-            new_state = np.sum([env.branch_probability * env.get_pair_state() for env in env_list], axis=0)
-            new_state = new_state / np.trace(new_state)
-            if depolarize is True:
-                fid = fidelity(new_state)
-                pp = (4 * fid - 1) / 3
-                new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
-                new_state = mat.wnoise(new_state, 0, pp)
-        my_env = EPPEnv()
-        my_env.reset()
-        initial_fidelity = fidelity(mat.ptrace(my_env.state, [1, 3]))
-        # # if (fidelity(new_state) - initial_fidelity) > 0:
-        # #     return 10
-        # # else:
-        # #     return 0
-        # reward = probability / 10**-12 * max(fidelity(new_state) - initial_fidelity, 0)
-        delta_f = (fidelity(new_state) - initial_fidelity)
-        if delta_f < 10**-15:
-            reward = 0
-        else:
-            reward = probability * delta_f / 0.7048 / (0.7675936435868332 - 0.73)
-            # print(probability, (fidelity(new_state) - initial_fidelity))
-            # print(accepted_actions_lists)
-        return reward
-
     def merge_reward(self, reward):
         # note: this has weird behavior when glow is active because of the different length of solutions
         self.primary_agent.history_since_last_reward = []  # just to make it explicit
@@ -131,7 +79,7 @@ class MetaAnalysisInteraction(object):
             self.partial_trial_list += [partial_trial]
             self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info)
             # now the evaluating and updating part starts
-            reward = self.multiverse_reward(self.partial_trial_list, depolarize=True)
+            reward = self.primary_env.multiverse_reward(self.partial_trial_list)
             self.merge_reward(reward)
             reward_curve[i_trial] = reward
         res["reward_curve"] = reward_curve
