@@ -12,28 +12,28 @@ import os
 
 num_processes = 64  # change according to cluster computer you choose
 num_agents = 100
-etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
-n_trials = 60000
+etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
+n_trials = 100000
 result_path = "results/teleportation/universal_gates/raw/"
 
 
 def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
     np.random.seed()
     env = TeleportationUniversalEnv()
-    agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")
+    agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense", reset_glow=True)
     interaction = Interaction(agent=agent, environment=env)
     res = interaction.single_learning_life(n_trials=n_trials, max_steps_per_trial=50)
     learning_curve = res["learning_curve"]
     success_list = np.ones(len(learning_curve), dtype=np.int)
     success_list[learning_curve == 0] = 1
-    learning_curve[learning_curve == 0] = 10000
+    learning_curve[learning_curve == 0] = 10**-4
     step_curve = learning_curve**-1
     if sparsity != 1:
         step_curve = step_curve[0::sparsity]
         success_list = success_list[0::sparsity]
     # np.savetxt("results/eta_%d/step_curve_%d.txt" % (eta * label_multiplicator, i), step_curve, fmt="%.5f")
     np.save(result_path + "eta_%d/step_curve_%d.npy" % (eta * label_multiplicator, i), step_curve)
-    np.savetxt(result_path + "eta_%d/success_list_%d.txt" % (eta * label_multiplicator, i), fmt="%-d")
+    np.savetxt(result_path + "eta_%d/success_list_%d.txt" % (eta * label_multiplicator, i), success_list, fmt="%-d")
 
 
 def get_label_multiplicator(eta):
