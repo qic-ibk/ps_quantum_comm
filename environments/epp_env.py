@@ -81,6 +81,11 @@ proj_plus_3 = tensor(Id, Id, Id, mat.Pz0)
 proj_minus_3 = tensor(Id, Id, Id, mat.Pz1)
 
 
+def fidelity(rho):
+    fid = np.dot(np.dot(mat.H(mat.phiplus), rho), mat.phiplus)
+    return float(fid[0, 0])
+
+
 class EPPEnv(AbstractEnvironment):
     """
     """
@@ -96,6 +101,52 @@ class EPPEnv(AbstractEnvironment):
         self.active_qubits = [0, 1, 2, 3]
         self.available_actions = [i for i in range(14)]
         self.branch_probability = 1
+
+    def multiverse_reward(self, partial_trial_list, depolarize=True, recurrence_steps=1):
+        accepted_branches = filter(lambda x: x.env.percept_now[-1] == 14, partial_trial_list)
+        env_list = [branch.env for branch in accepted_branches]
+        if env_list == []:  # if no branches were accepted, give no reward
+            return 0
+        accepted_actions_lists = [env.percept_now for env in env_list]
+        probability = np.sum([env.branch_probability for env in env_list])
+        new_state = np.sum([env.branch_probability * env.get_pair_state() for env in env_list], axis=0)
+        new_state = new_state / np.trace(new_state)
+        if depolarize is True:
+            fid = fidelity(new_state)
+            pp = (4 * fid - 1) / 3
+            new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
+            new_state = mat.wnoise(new_state, 0, pp)
+        for i in range(1, recurrence_steps):
+            input_state = mat.tensor(new_state, new_state)
+            input_state = mat.reorder(input_state, [0, 2, 1, 3])
+            for env, action_list in zip(env_list, accepted_actions_lists):
+                env.reset(input_state=input_state)
+                for action in action_list:
+                    env.move(action)
+            probability *= np.sum([env.branch_probability for env in env_list])
+            new_state = np.sum([env.branch_probability * env.get_pair_state() for env in env_list], axis=0)
+            new_state = new_state / np.trace(new_state)
+            if depolarize is True:
+                fid = fidelity(new_state)
+                pp = (4 * fid - 1) / 3
+                new_state = np.dot(mat.phiplus, mat.H(mat.phiplus))
+                new_state = mat.wnoise(new_state, 0, pp)
+        my_env = EPPEnv()
+        my_env.reset()
+        initial_fidelity = fidelity(mat.ptrace(my_env.state, [1, 3]))
+        # # if (fidelity(new_state) - initial_fidelity) > 0:
+        # #     return 10
+        # # else:
+        # #     return 0
+        # reward = probability / 10**-12 * max(fidelity(new_state) - initial_fidelity, 0)
+        delta_f = (fidelity(new_state) - initial_fidelity)
+        if delta_f < 10**-15:
+            reward = 0
+        else:
+            reward = probability * delta_f / 0.7048 / (0.7675936435868332 - 0.73)
+            # print(probability, (fidelity(new_state) - initial_fidelity))
+            # print(accepted_actions_lists)
+        return reward
 
     def reset(self, input_state=None):  # makes it easy to initialize with different starting states for the meta-analysis
         if input_state is not None:
@@ -121,7 +172,6 @@ class EPPEnv(AbstractEnvironment):
             return MEASURE_3
         else:
             return index
-
 
     def get_pair_state(self):
         if len(self.active_qubits) != 2:
