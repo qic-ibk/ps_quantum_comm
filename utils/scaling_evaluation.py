@@ -17,7 +17,7 @@ for i in range(2, 9):
     # print(history)
     with open("results/block_action_%d.pickle" % i, "rb") as f:
         block_action = pickle.load(f)
-    a = [str(i) for i in block_action["actions"]]
+    a = [str(k) for k in block_action["actions"]]
     a = "\n".join(a)
     print(a)
     resources = np.load("results/best_resources_%d.npy" % i)
@@ -25,8 +25,8 @@ for i in range(2, 9):
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
     plt.axhline(y=naive_constants[i], color="r")
-    if naive_constants[i] != found_constants[i]:
-        plt.axhline(y=found_constants[i], color="b")
+    # if naive_constants[i] != found_constants[i]:
+    #     plt.axhline(y=found_constants[i], color="b")
     plt.title("repeater length: " + str(i) + " ; best solution found")
     plt.ylabel("resources used")
     plt.xlabel("trial number")
@@ -34,9 +34,11 @@ for i in range(2, 9):
 
 print(aux)
 
-a = np.loadtxt("results/resource_list.txt")
-plt.hist(a, bins=30)
-plt.ylabel("number of agents")
-plt.xlabel("resources of found solution")
-plt.title("repeater_length = 2")
-plt.show()
+
+for i in range(2, 9):
+    a = np.loadtxt("results/resource_list_%d.txt" % i)
+    plt.hist(a, bins=30)
+    plt.ylabel("number of agents")
+    plt.xlabel("resources of found solution")
+    plt.title("repeater_length = " + str(i))
+    plt.show()
