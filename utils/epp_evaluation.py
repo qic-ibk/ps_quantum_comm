@@ -14,7 +14,8 @@ def assert_dir(path):
 
 
 if __name__ == "__main__":
-    reward_curves = [np.load(result_path + "reward_curve_%d.npy") for i in range(num_agents)]
+    assert_dir(result_path)
+    reward_curves = [np.load(result_path + "reward_curve_%d.npy" % i) for i in range(num_agents)]
     average_curve = np.sum(reward_curves, axis=0) / num_agents
     plt.plot(np.arange(1, len(average_curve) * sparsity + 1, sparsity), average_curve)
     plt.show()
