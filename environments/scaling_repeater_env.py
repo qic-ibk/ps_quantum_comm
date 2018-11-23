@@ -80,11 +80,17 @@ class TaskEnvironment(AbstractEnvironment):
     """
     def __init__(self, length=2, composite_actions=[], q=0.57, target_fid=0.9, reward_constant=1, reward_exponent=1):
         self.length = length
-        self.start_fid = (3 * q + 1) / 4
+        if isinstance(q, (int, float)):
+            self.start_fid = [(3 * q + 1) / 4] * length
+        elif isinstance(q, (list, tuple)) and len(q) == length:
+            self.start_fid = [(3 * qq + 1) / 4 for qq in q]
+        else:
+            raise ValueError(repr(q) + " as initial noise is not supported.")
+
         self.target_fid = target_fid
         self.reward_constant = reward_constant  # could simply define a function for this
         self.reward_exponent = reward_exponent
-        self.state = [_Pair((i, i + 1), fid=self.start_fid, resources=1.0) for i in range(self.length)]
+        self.state = [_Pair((i, i + 1), fid=self.start_fid[i], resources=1.0) for i in range(self.length)]
         self.base_actions = [_Action(ACTION_SWAP, i) for i in range(1, self.length)] + [_Action(ACTION_PURIFY, pair.stations) for pair in self.state]
         self.n_base_actions = len(self.base_actions)
         self.available_actions = [i for i in range(len(self.base_actions))]
@@ -213,7 +219,7 @@ class TaskEnvironment(AbstractEnvironment):
         return {"block_size": self.length, "actions": action_sequence}
 
     def reset(self):
-        self.state = [_Pair((i, i + 1), fid=self.start_fid, resources=1.0) for i in range(self.length)]
+        self.state = [_Pair((i, i + 1), fid=self.start_fid[i], resources=1.0) for i in range(self.length)]
         self.available_actions = [i for i in range(len(self.base_actions))]
         self._recalc_composite_actions()
         # IMPORTANT: self.action_list is persistent between trials for consistent numbering of actions
