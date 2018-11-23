@@ -78,7 +78,7 @@ class _Pair(object):
 class TaskEnvironment(AbstractEnvironment):
     """
     """
-    def __init__(self, length=2, composite_actions=[], q=0.57, target_fid=0.9, reward_constant=1, reward_exponent=1):
+    def __init__(self, length=2, composite_actions=[], q=0.57, target_fid=0.9, reward_constant=1, reward_exponent=1, p=1.0):
         self.length = length
         if isinstance(q, (int, float)):
             self.start_fid = [(3 * q + 1) / 4] * length
@@ -86,7 +86,7 @@ class TaskEnvironment(AbstractEnvironment):
             self.start_fid = [(3 * qq + 1) / 4 for qq in q]
         else:
             raise ValueError(repr(q) + " as initial noise is not supported.")
-
+        self.gate_noise = p
         self.target_fid = target_fid
         self.reward_constant = reward_constant  # could simply define a function for this
         self.reward_exponent = reward_exponent
@@ -127,6 +127,9 @@ class TaskEnvironment(AbstractEnvironment):
         if pair is None:
             raise ValueError("There is no pair between stations %s that can be purified." % str(stations))
         f = pair.fid
+        if self.gate_noise != 1.0:  # imperfect cnot gates
+            qq = (4 * f - 1) / 3
+            f = (3 * qq * self.gate_noise**2 + 1) / 4
         p_suc = f**2 + 2 * f * (1 - f) / 3 + 5 * (1 - f)**2 / 9
         pair.fid = (f**2 + (1 - f)**2 / 9) / p_suc  # directly modifies self.state
         pair.resources *= 2 / p_suc
