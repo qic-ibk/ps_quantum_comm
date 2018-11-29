@@ -77,16 +77,16 @@ class _Pair(object):
 class TaskEnvironment(AbstractEnvironment):
     """
     """
-    def __init__(self, length=2, available_block_lengths=[], q=0.57, target_fid=0.9, reward_constant=1, reward_exponent=1, p=1.0, lookup_object=None):
+    def __init__(self, length=2, available_block_lengths=[], start_fid=0.51, target_fid=0.9, reward_constant=1, reward_exponent=1, p=1.0, delegated_solutions=None):
         self.length = length
-        if isinstance(q, (int, float)):
-            self.start_fid = [(3 * q + 1) / 4] * length
-        elif isinstance(q, (list, tuple)) and len(q) == length:
-            self.start_fid = [(3 * qq + 1) / 4 for qq in q]
+        if isinstance(start_fid, (int, float)):
+            self.start_fid = [start_fid] * length
+        elif isinstance(start_fid, (list, tuple)) and len(start_fid) == length:
+            self.start_fid = start_fid
         else:
-            raise ValueError(repr(q) + " as initial noise is not supported.")
+            raise ValueError(repr(start_fid) + " as initial fidelities is not supported.")
         self.gate_noise = p
-        self.lookup_object = lookup_object
+        self.delegated_solutions = delegated_solutions
         self.target_fid = target_fid
         self.reward_constant = reward_constant  # could simply define a function for this
         self.reward_exponent = reward_exponent
@@ -209,12 +209,16 @@ class TaskEnvironment(AbstractEnvironment):
             history: list of (observation, action_index) tuples
         """
         action_sequence = []
+        self.reset()
         for _, action_index in history:
             action = self.action_list[action_index]
             if action.type == ACTION_COMPOSITE:
-                for act in action.constituent_actions:
-                    action_sequence += [act]
+                self.move(action_index)
+                block_actions = self._find_delegated_action(action)
+                action_list = self._shift_actions(block_actions, action.involved_links)
+                action_sequence += action_list
             else:
+                self.move(action_index)
                 action_sequence += [action]
         return {"block_size": self.length, "actions": action_sequence}
 
