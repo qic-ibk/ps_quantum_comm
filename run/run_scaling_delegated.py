@@ -124,7 +124,8 @@ if __name__ == "__main__":
     # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
-    for start_fid in it.product(np.arange(0.51, 1.00, 0.01), repeat=repeater_length):
+    fids = np.arange(0.55, 1.00, 0.05)
+    for start_fid in it.product(fids, repeat=repeater_length):
         print(start_fid)
         aux = [(repeater_length, allowed_block_lengths, start_fid) for i in range(num_agents)]
         p = Pool(processes=num_processes)
