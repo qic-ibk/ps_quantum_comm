@@ -15,7 +15,7 @@ import itertools as it
 
 num_processes = 48
 num_agents = 128
-repeater_length = 2
+repeater_length = 3
 allowed_block_lengths = [i for i in range(2, repeater_length)]
 p_gates = 1.0
 eta = 0
@@ -70,13 +70,26 @@ def naive_constant(repeater_length, start_fid, target_fid):
     return my_constant
 
 
+def distance(first, second):
+    return sum([abs(x - y) for x, y in zip(first, second)])
+
+
+def all_smaller(first, second):
+    return all([x < y for x, y in zip(first, second)])
+
+
 class SolutionCollection(object):
     def __init__(self, initial_dict={}):
         self.solution_dict = initial_dict
 
     def get_block_action(self, fid_list):
-        key = tuple((int(fid * 100) for fid in fid_list))  # getting actions is rounded down
-        return self.solution_dict[key]  # raises KeyError if the solution is not present
+        dict_key = tuple((int(fid * 100) for fid in fid_list))  # getting actions is rounded down
+        try:
+            return self.solution_dict[dict_key]  # raises KeyError if the solution is not present
+        except KeyError:
+            smaller_keys = filter(lambda x: len(x) == len(dict_key) and all_smaller(x, dict_key), self.solution_dict)
+            dict_key = min(smaller_keys, key=lambda x: distance(x, dict_key))
+            return self.solution_dict[dict_key]
 
     def add_block_action(self, fid_list, action_list):
         key = tuple((int(fid * 100) for fid in fid_list))
@@ -124,10 +137,11 @@ if __name__ == "__main__":
     # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
-    fids = np.arange(0.55, 1.00, 0.05)
+    # fids = np.arange(0.55, 1.00, 0.05)
+    fids = np.arange(0.6, 1.00, 0.10)
     for start_fid in it.product(fids, repeat=repeater_length):
         print(start_fid)
-        aux = [(repeater_length, allowed_block_lengths, start_fid) for i in range(num_agents)]
+        aux = [(repeater_length, sc, start_fid) for i in range(num_agents)]
         p = Pool(processes=num_processes)
         interactions, res_list = zip(*p.map(run, aux))
         p.close()

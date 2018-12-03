@@ -213,10 +213,10 @@ class TaskEnvironment(AbstractEnvironment):
         for _, action_index in history:
             action = self.action_list[action_index]
             if action.type == ACTION_COMPOSITE:
-                self.move(action_index)
                 block_actions = self._find_delegated_action(action)
                 action_list = self._shift_actions(block_actions, action.involved_links)
                 action_sequence += action_list
+                self.move(action_index)
             else:
                 self.move(action_index)
                 action_sequence += [action]
@@ -237,7 +237,12 @@ class TaskEnvironment(AbstractEnvironment):
         return reward
 
     def _find_delegated_action(self, action):
-        pass
+        links = action.involved_links
+        fids = []
+        for link in links:
+            pair = next(filter(lambda x: x.stations == link, self.state))
+            fids += [pair.fid]
+        return self.delegated_solutions.get_block_action(fids)
 
     def move(self, action):
         if action not in self.available_actions:
