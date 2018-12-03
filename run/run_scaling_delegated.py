@@ -13,7 +13,7 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 2
+num_processes = 48
 num_agents = 128
 repeater_length = 2
 allowed_block_lengths = [i for i in range(2, repeater_length)]
@@ -75,11 +75,11 @@ class SolutionCollection(object):
         self.solution_dict = initial_dict
 
     def get_block_action(self, fid_list):
-        key = (int(fid * 100) for fid in fid_list)  # getting actions is rounded down
+        key = tuple((int(fid * 100) for fid in fid_list))  # getting actions is rounded down
         return self.solution_dict[key]  # raises KeyError if the solution is not present
 
     def add_block_action(self, fid_list, action_list):
-        key = (int(fid * 100) for fid in fid_list)
+        key = tuple((int(fid * 100) for fid in fid_list))
         if key in self.solution_dict:
             warn("Overwriting solution for " + str(key))  # ideally, we should keep the best solution instead of oerwriting
         self.solution_dict[key] = action_list
