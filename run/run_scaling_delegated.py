@@ -91,11 +91,12 @@ class SolutionCollection(object):
             try:
                 dict_key = min(smaller_keys, key=lambda x: distance(x, dict_key))
             except ValueError as e:
-                print("fid_list: " + str(fid_list))
-                print("smaller_keys: " + str(fid_list))
-                print("dict_key: " + str(dict_key))
-                print("all keys: " + str(self.solution_dict.keys()))
-                raise e
+                my_str = "\n"
+                my_str += "fid_list: " + str(fid_list) + "\n"
+                my_str += "smaller_keys: " + str(fid_list) + "\n"
+                my_str += "dict_key: " + str(dict_key) + "\n"
+                my_str += "all keys: " + str(self.solution_dict.keys()) + "\n"
+                raise type(e)(e.message + my_str)
             return self.solution_dict[dict_key]
 
     def add_block_action(self, fid_list, action_list):
