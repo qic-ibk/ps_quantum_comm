@@ -88,7 +88,14 @@ class SolutionCollection(object):
             return self.solution_dict[dict_key]  # raises KeyError if the solution is not present
         except KeyError:
             smaller_keys = filter(lambda x: len(x) == len(dict_key) and all_smaller(x, dict_key), self.solution_dict)
-            dict_key = min(smaller_keys, key=lambda x: distance(x, dict_key))
+            try:
+                dict_key = min(smaller_keys, key=lambda x: distance(x, dict_key))
+            except ValueError as e:
+                print("fid_list: " + str(fid_list))
+                print("smaller_keys: " + str(fid_list))
+                print("dict_key: " + str(dict_key))
+                print("all keys: " + str(self.solution_dict.keys()))
+                raise e
             return self.solution_dict[dict_key]
 
     def add_block_action(self, fid_list, action_list):
