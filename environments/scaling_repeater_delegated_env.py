@@ -254,6 +254,11 @@ class TaskEnvironment(AbstractEnvironment):
             self._entanglement_swapping(my_action.station)
         elif my_action.type == ACTION_COMPOSITE:
             block_actions = self._find_delegated_action(my_action)
+            if block_actions is None:  # abort if no action is found
+                reward = 0
+                episode_finished = 1
+                observation = self._observation()
+                return observation, reward, episode_finished, {"available_actions": self.available_actions}
             action_list = self._shift_actions(block_actions, my_action.involved_links)
             for act in action_list:
                 act_index = self.action_list.index(act)
