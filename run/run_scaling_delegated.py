@@ -15,8 +15,9 @@ import itertools as it
 
 num_processes = 48
 num_agents = 128
-repeater_length = 4
-allowed_block_lengths = [i for i in range(2, repeater_length)]
+repeater_length = 8
+# allowed_block_lengths = [i for i in range(2, repeater_length)]
+allowed_block_lengths = [2, 3, 4]
 p_gates = 1.0
 eta = 0
 target_fid = 0.9
@@ -78,6 +79,15 @@ def all_smaller(first, second):
     return all([x < y for x, y in zip(first, second)])
 
 
+def resources_from_block_action(start_fid, action_sequence):
+    rep_length = len(start_fid)
+    env = Env(length=rep_length, start_fid=start_fid, target_fid=target_fid, p=p_gates)
+    for action in action_sequence:
+        action_index = env.action_list.index(action)
+        env.move(action_index)
+    return env.get_resources
+
+
 class SolutionCollection(object):
     def __init__(self, initial_dict={}):
         self.solution_dict = initial_dict
@@ -103,7 +113,11 @@ class SolutionCollection(object):
     def add_block_action(self, fid_list, action_list):
         key = tuple((int(fid * 100) for fid in fid_list))
         if key in self.solution_dict:
-            warn("Overwriting solution for " + str(key))  # ideally, we should keep the best solution instead of oerwriting
+            old_action_list = self.solution_dict[key]
+            if resources_from_block_action(fid_list, action_list) >= resources_from_block_action(fid_list, old_action_list):
+                return
+            else:  # if it uses fewer results, overwrite solution
+                warn("Found a better solution for " + str(key))
         self.solution_dict[key] = action_list
 
     def save(self, destination):
@@ -147,8 +161,12 @@ if __name__ == "__main__":
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
     # fids = np.arange(0.55, 1.00, 0.05)
-    fids = np.arange(0.6, 1.00, 0.10)
-    for start_fid in it.product(fids, repeat=repeater_length):
+    # fids = np.arange(0.6, 1.00, 0.10)
+    # start_fids = it.product(fids, repeat=repeater_length
+    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+    for i, start_fid in enumerate(start_fids):
+        config_path = result_path + "length%d_%d/" % (repeater_length, i)
+        assert_dir(config_path)
         print(start_fid)
         aux = [(repeater_length, sc, start_fid) for i in range(num_agents)]
         p = Pool(processes=num_processes)
@@ -156,6 +174,7 @@ if __name__ == "__main__":
         p.close()
         p.join()
         resource_list = [res["resources"][-1] for res in res_list]
+        np.savetxt(config_path + "resource_list.txt")
         try:
             min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
         except ValueError:  # if all values are NaN
@@ -167,7 +186,14 @@ if __name__ == "__main__":
         best_history = res_list[min_index]["last_trial_history"]
         block_action = best_env.composite_action_from_history(best_history)
         action_sequence = block_action["actions"]
-        sc.add_block_action(fid_list=start_fid, action_list=action_sequence)
+        sc.add_block_action(fid_list=start_fid, action_list=action_sequence)  # save for later use
+        best_resources = res_list[min_index]["resources"]
+        np.save(config_path + "best_resources.npy", best_resources)
+        with open(config_path + "block_action.pickle", "wb") as f:
+            pickle.dump(block_action, f)
+        with open(config_path + "best_history.pickle" % repeater_length, "wb") as f:
+            pickle.dump(best_history, f)
+
     sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
 
