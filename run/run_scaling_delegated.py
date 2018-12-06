@@ -174,7 +174,7 @@ if __name__ == "__main__":
         p.close()
         p.join()
         resource_list = [res["resources"][-1] for res in res_list]
-        np.savetxt(config_path + "resource_list.txt")
+        np.savetxt(config_path + "resource_list.txt", resource_list)
         try:
             min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
         except ValueError:  # if all values are NaN
