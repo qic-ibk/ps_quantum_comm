@@ -191,7 +191,7 @@ if __name__ == "__main__":
         np.save(config_path + "best_resources.npy", best_resources)
         with open(config_path + "block_action.pickle", "wb") as f:
             pickle.dump(block_action, f)
-        with open(config_path + "best_history.pickle" % repeater_length, "wb") as f:
+        with open(config_path + "best_history.pickle", "wb") as f:
             pickle.dump(best_history, f)
 
     sc.save(result_path + "/solution_collection.pickle")
