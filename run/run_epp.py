@@ -16,11 +16,11 @@ def assert_dir(path):
         os.makedirs(path)
 
 
-num_processes = 64  # change according to cluster computer you choose
+num_processes = 48  # change according to cluster computer you choose
 num_agents = 100
 n_trials = 120000
 eta = 0
-result_path = "results/epp/raw/"
+result_path = "results/epp_modified/raw/"
 
 
 def run_epp(i, sparsity=10):
@@ -32,7 +32,7 @@ def run_epp(i, sparsity=10):
     reward_curve = res["reward_curve"]
     if sparsity != 1:
         reward_curve = reward_curve[::sparsity]
-    np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
+    # np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
 
 
 class RunCallable(object):  # this solution is necessary because only top-level objects can be pickled
