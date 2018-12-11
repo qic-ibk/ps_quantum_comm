@@ -9,6 +9,8 @@ from warnings import warn
 
 np.seterr(divide="raise")
 
+
+# NOTE: T is the x-basis variant here
 H_0 = 0
 T_0 = 1
 H_1 = 2
@@ -42,6 +44,10 @@ ACTIONS_Q3 = [6, 7, 9, 13]
 
 Ha = mat.Ha
 T = np.array([[1, 0], [0, 1 / np.sqrt(2) * (1 + 1j)]], dtype=np.complex)
+# carfeful: T is the x-variant
+T = np.dot(np.dot(Ha, T), Ha)
+# even more simplified: only clifford - ugly hack
+T = np.dot(T, T)
 CNOT = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 Id = np.eye(2)
 
@@ -134,11 +140,6 @@ class EPPEnv(AbstractEnvironment):
         my_env = EPPEnv()
         my_env.reset()
         initial_fidelity = fidelity(mat.ptrace(my_env.state, [1, 3]))
-        # # if (fidelity(new_state) - initial_fidelity) > 0:
-        # #     return 10
-        # # else:
-        # #     return 0
-        # reward = probability / 10**-12 * max(fidelity(new_state) - initial_fidelity, 0)
         delta_f = (fidelity(new_state) - initial_fidelity)
         if delta_f < 10**-15:
             reward = 0
