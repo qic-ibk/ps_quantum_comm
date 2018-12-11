@@ -35,38 +35,3 @@ for i, start_fid in enumerate(start_fids):
     plt.xlabel("resources of found solution")
     plt.title("starting fids = " + str(start_fid))
     plt.show()
-
-
-exit()
-for i in range(2, 9):
-    print(i)
-    with open("results/best_history_%d.pickle" % i, "rb") as f:
-        history = pickle.load(f)
-    # print(history)
-    with open("results/block_action_%d.pickle" % i, "rb") as f:
-        block_action = pickle.load(f)
-    a = [str(k) for k in block_action["actions"]]
-    a = "\n".join(a)
-    print(a)
-    resources = np.load("results/best_resources_%d.npy" % i)
-    aux += [resources[-1]]
-    plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
-    plt.yscale("log")
-    plt.axhline(y=naive_constants[i], color="r")
-    # if naive_constants[i] != found_constants[i]:
-    #     plt.axhline(y=found_constants[i], color="b")
-    plt.title("repeater length: " + str(i) + " ; best solution found")
-    plt.ylabel("resources used")
-    plt.xlabel("trial number")
-    plt.show()
-
-print(aux)
-
-
-for i in range(2, 9):
-    a = np.loadtxt("results/resource_list_%d.txt" % i)
-    plt.hist(a, bins=30)
-    plt.ylabel("number of agents")
-    plt.xlabel("resources of found solution")
-    plt.title("repeater_length = " + str(i))
-    plt.show()
