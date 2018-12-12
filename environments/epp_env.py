@@ -191,8 +191,7 @@ class EPPEnv(AbstractEnvironment):
         else:
             # this whole constant calculation really, really shouldn't happen every step
             aux = np.dot(phiplus, H(phiplus))
-            start_state = mat.reorder(tensor(aux, aux), [0, 2, 1, 3])
-            start_state = mat.wnoise_all(start_state, self.q)
+            start_state = mat.wnoise_all(aux, self.q)
             const = get_constant(start_state, depolarize=depolarize, recurrence_steps=recurrence_steps)
             reward = probability * delta_f / const
             # print(probability, (fidelity(new_state) - initial_fidelity))
