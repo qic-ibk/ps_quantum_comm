@@ -134,7 +134,7 @@ def get_constant(input_state, depolarize, recurrence_steps):
             p_suc *= p_step
         fid = fidelity(state)
     const = p_suc**(1 / recurrence_steps) * (fid - input_fid)
-    return const
+    return float(const)
 
 
 class EPPEnv(AbstractEnvironment):
