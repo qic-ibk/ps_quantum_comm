@@ -15,9 +15,9 @@ import itertools as it
 
 num_processes = 48
 num_agents = 128
-repeater_length = 8
-# allowed_block_lengths = [i for i in range(2, repeater_length)]
-allowed_block_lengths = [2, 3, 4]
+repeater_length = 2
+allowed_block_lengths = [i for i in range(2, repeater_length)]
+# allowed_block_lengths = [2, 3, 4]
 p_gates = 0.95
 eta = 0
 target_fid = 0.9
