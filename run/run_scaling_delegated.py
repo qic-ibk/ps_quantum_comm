@@ -160,13 +160,13 @@ if __name__ == "__main__":
     # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
-    # fids = np.arange(0.55, 1.00, 0.05)
+    fids = np.arange(0.55, 1.00, 0.05)
     # fids = np.arange(0.6, 1.00, 0.10)
-    # start_fids = it.product(fids, repeat=repeater_length
-    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+    start_fids = it.product(fids, repeat=repeater_length)
+    # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
-        config_path = result_path + "length%d_%d/" % (repeater_length, i)
-        assert_dir(config_path)
+        # config_path = result_path + "length%d_%d/" % (repeater_length, i)
+        # assert_dir(config_path)
         print(start_fid)
         aux = [(repeater_length, sc, start_fid) for i in range(num_agents)]
         p = Pool(processes=num_processes)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         p.close()
         p.join()
         resource_list = [res["resources"][-1] for res in res_list]
-        np.savetxt(config_path + "resource_list.txt", resource_list)
+        # np.savetxt(config_path + "resource_list.txt", resource_list)
         try:
             min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
         except ValueError:  # if all values are NaN
@@ -188,11 +188,11 @@ if __name__ == "__main__":
         action_sequence = block_action["actions"]
         sc.add_block_action(fid_list=start_fid, action_list=action_sequence)  # save for later use
         best_resources = res_list[min_index]["resources"]
-        np.save(config_path + "best_resources.npy", best_resources)
-        with open(config_path + "block_action.pickle", "wb") as f:
-            pickle.dump(block_action, f)
-        with open(config_path + "best_history.pickle", "wb") as f:
-            pickle.dump(best_history, f)
+        # np.save(config_path + "best_resources.npy", best_resources)
+        # with open(config_path + "block_action.pickle", "wb") as f:
+        #     pickle.dump(block_action, f)
+        # with open(config_path + "best_history.pickle", "wb") as f:
+        #     pickle.dump(best_history, f)
 
     sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
