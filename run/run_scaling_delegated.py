@@ -18,10 +18,10 @@ num_agents = 128
 repeater_length = 8
 # allowed_block_lengths = [i for i in range(2, repeater_length)]
 allowed_block_lengths = [2, 3, 4]
-p_gates = 1.0
+p_gates = 0.95
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated/"
+result_path = "results/scaling_delegated/p_gates95/"
 
 
 def assert_dir(path):
