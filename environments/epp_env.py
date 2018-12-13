@@ -284,7 +284,10 @@ class EPPEnv(AbstractEnvironment):
         state = self._apply(projector)
         probability = float(np.trace(state))
         # print(probability)
-        self.state = state / probability
+        try:
+            self.state = state / probability
+        except FloatingPointError:  # e.g. probability is zero
+            self.state = 0 * state
         self.branch_probability *= probability
         return
 
