@@ -7,7 +7,7 @@ import numpy as np
 from .libraries import matrix as mat
 from warnings import warn
 
-np.seterr(divide="raise")
+np.seterr(divide="raise", invalid="raise")
 
 
 # NOTE: T is the x-basis variant here
