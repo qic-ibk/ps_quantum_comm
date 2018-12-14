@@ -32,7 +32,7 @@ def run_epp(i, sparsity=10):
     reward_curve = res["reward_curve"]
     if sparsity != 1:
         reward_curve = reward_curve[::sparsity]
-    # np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
+    np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
 
 
 class RunCallable(object):  # this solution is necessary because only top-level objects can be pickled
