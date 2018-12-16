@@ -5,7 +5,7 @@ import os
 
 num_agents = 100
 sparsity = 10
-result_path = "results/epp/raw/"
+result_path = "results/epp_modified/raw/"
 
 
 def assert_dir(path):
