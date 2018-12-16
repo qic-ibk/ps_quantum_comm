@@ -16,7 +16,7 @@ import itertools as it
 num_processes = 48
 num_agents = 128
 num_trials = 10000
-repeater_length = 2
+repeater_length = 3
 allowed_block_lengths = [i for i in range(2, repeater_length)]
 # allowed_block_lengths = [2, 3, 4]
 p_gates = 0.98
@@ -169,8 +169,8 @@ if __name__ == "__main__":
     # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
-    fids = np.arange(0.6, 1.00, 0.05)
-    # fids = np.arange(0.6, 1.00, 0.10)
+    # fids = np.arange(0.6, 1.00, 0.05)
+    fids = np.arange(0.6, 1.00, 0.10)
     start_fids = it.product(fids, repeat=repeater_length)
     # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
