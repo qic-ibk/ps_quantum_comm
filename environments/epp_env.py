@@ -193,10 +193,10 @@ class EPPEnv(AbstractEnvironment):
             aux = np.dot(phiplus, H(phiplus))
             start_state = mat.wnoise_all(aux, self.q)
             const = get_constant(start_state, depolarize=depolarize, recurrence_steps=recurrence_steps)
-            reward = probability * delta_f / const
+            reward = probability**(1 / recurrence_steps) * delta_f / const
             # print(probability, (fidelity(new_state) - initial_fidelity))
             # print(accepted_actions_lists)
-        return reward
+        return max(reward, 0)
 
     def reset(self, input_state=None):  # makes it easy to initialize with different starting states for the meta-analysis
         if input_state is not None:
