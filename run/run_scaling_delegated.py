@@ -16,7 +16,7 @@ import itertools as it
 num_processes = 48
 num_agents = 128
 num_trials = 10000
-repeater_length = 3
+repeater_length = 4
 allowed_block_lengths = [i for i in range(2, repeater_length)]
 # allowed_block_lengths = [2, 3, 4]
 p_gates = 0.98
