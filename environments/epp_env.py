@@ -116,6 +116,7 @@ def dejmps_step(input_state):
                     2 * lambda_00 * lambda_11 * proj(phiminus) +
                     (lambda_01**2 + lambda_10**2) * proj(psiplus) +
                     2 * lambda_01 * lambda_10 * proj(psiminus))
+    output_state = output_state / p_suc  # renormalize!
     return output_state, p_suc
 
 
