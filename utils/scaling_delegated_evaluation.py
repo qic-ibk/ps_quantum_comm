@@ -10,7 +10,7 @@ for i, start_fid in enumerate(start_fids):
     path = "results/scaling_delegated/length8_%d/" % i
     with open(path + "best_history.pickle", "rb") as f:  # best history is actually quite useless like this - we need actions instead of action_indices
         history = pickle.load(f)
-    # print(history)
+    print(history)
     with open(path + "block_action.pickle", "rb") as f:
         block_action = pickle.load(f)
     a = [str(k) for k in block_action["actions"]]
