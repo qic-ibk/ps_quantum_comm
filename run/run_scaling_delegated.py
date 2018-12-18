@@ -193,9 +193,6 @@ if __name__ == "__main__":
         # add best block to next iteration
         best_env = interactions[min_index].env
         best_history = res_list[min_index]["last_trial_history"]
-        # add action also, because action index is not very informative
-        best_history = [(observation, action_index, best_env.action_list[action_index]) for observation, action_index in best_history]
-
         block_action = best_env.composite_action_from_history(best_history)
         action_sequence = block_action["actions"]
         sc.add_block_action(fid_list=start_fid, action_list=action_sequence)  # save for later use
@@ -203,6 +200,8 @@ if __name__ == "__main__":
         np.save(config_path + "best_resources.npy", best_resources)
         with open(config_path + "block_action.pickle", "wb") as f:
             pickle.dump(block_action, f)
+        # add action also before saving, because action index is not very informative
+        best_history = [(observation, action_index, best_env.action_list[action_index]) for observation, action_index in best_history]
         with open(config_path + "best_history.pickle", "wb") as f:
             pickle.dump(best_history, f)
 
