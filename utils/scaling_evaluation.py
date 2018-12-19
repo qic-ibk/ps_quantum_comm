@@ -38,6 +38,7 @@ print(aux)
 for i in range(2, 9):
     a = np.loadtxt("results/resource_list_%d.txt" % i)
     plt.hist(a, bins=30)
+    plt.axvline(x=naive_constants[i], color="r")
     plt.ylabel("number of agents")
     plt.xlabel("resources of found solution")
     plt.title("repeater_length = " + str(i))
