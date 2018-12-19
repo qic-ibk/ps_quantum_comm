@@ -15,13 +15,14 @@ import itertools as it
 
 num_processes = 48
 num_agents = 128
+num_trials = 10000
 repeater_length = 8
 # allowed_block_lengths = [i for i in range(2, repeater_length)]
 allowed_block_lengths = [2, 3, 4]
-p_gates = 1.0
+p_gates = 0.98
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated/"
+result_path = "results/scaling_delegated/p_gates98/"
 
 
 def assert_dir(path):
@@ -37,15 +38,18 @@ def merge_collections(*args):
     return SolutionCollection(initial_dict=my_dict)
 
 
-def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity):
-    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p_gates)
+def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity, p=p_gates):
+    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p)
     while len(env.state) > 1:
         # purify all pairs to working fidelity
         for i, pair in enumerate(env.state):
             # print(i, "in purify to working")
             action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, pair.stations))
             while env.state[i].fid < working_fidelity:
+                fid_before = env.state[i].fid
                 env.move(action_index)
+                if env.state[i].fid <= fid_before:
+                    return np.nan
         # ent_swap the shortest distance
         stations = []
         distances = []
@@ -61,13 +65,16 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
     while env.state[0].fid < target_fidelity:
         # print("final purification")
         action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, env.state[0].stations))
+        fid_before = env.state[0].fid
         env.move(action_index)
+        if env.state[0].fid <= fid_before:
+            return np.nan
     return env.get_resources()
 
 
-def naive_constant(repeater_length, start_fid, target_fid):
+def naive_constant(repeater_length, start_fid, target_fid, p=p_gates):
     working_fids = np.arange(0.85, 0.999, 0.001)
-    my_constant = np.min([generate_constant(repeater_length, start_fid, wf, target_fid) for wf in working_fids])
+    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid, p) for wf in working_fids])
     return my_constant
 
 
@@ -85,7 +92,7 @@ def resources_from_block_action(start_fid, action_sequence):
     for action in action_sequence:
         action_index = env.action_list.index(action)
         env.move(action_index)
-    return env.get_resources
+    return env.get_resources()
 
 
 class SolutionCollection(object):
@@ -132,6 +139,8 @@ class SolutionCollection(object):
 def setup_interaction(repeater_length, solution_collection, start_fid):
     # print("No. of collected actions:" + str(len(collection)))
     reward_constant = naive_constant(repeater_length, start_fid, target_fid)
+    if np.isnan(reward_constant):
+        reward_constant = np.finfo(np.float32).max  # this will give the duty of determining the constant solely to
     env = Env(length=repeater_length, available_block_lengths=allowed_block_lengths, start_fid=start_fid, target_fid=target_fid, p=p_gates, reward_constant=reward_constant, reward_exponent=2, delegated_solutions=solution_collection)
     agent = ChangingActionsPSAgent(env.n_base_actions, 0, eta, "softmax", 1, "dense", reset_glow=True)
     interaction = Interaction(agent=agent, environment=env)
@@ -145,7 +154,7 @@ def run(aux):
         solution_collection = aux[1]
         q_initial = aux[2]
         interaction = setup_interaction(repeater_length, solution_collection, q_initial)
-        res = interaction.single_learning_life(10000, 500, True, env_statistics={"resources": interaction.env.get_resources})
+        res = interaction.single_learning_life(num_trials, 500, True, env_statistics={"resources": interaction.env.get_resources})
         return interaction, res
     except Exception:
         print("Exception occured in child process")
@@ -160,9 +169,9 @@ if __name__ == "__main__":
     # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
     # exit()
     sc.load(result_path + "/solution_collection.pickle")
-    # fids = np.arange(0.55, 1.00, 0.05)
+    # fids = np.arange(0.6, 1.00, 0.05)
     # fids = np.arange(0.6, 1.00, 0.10)
-    # start_fids = it.product(fids, repeat=repeater_length
+    # start_fids = it.product(fids, repeat=repeater_length)
     start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
@@ -191,6 +200,8 @@ if __name__ == "__main__":
         np.save(config_path + "best_resources.npy", best_resources)
         with open(config_path + "block_action.pickle", "wb") as f:
             pickle.dump(block_action, f)
+        # add action also before saving, because action index is not very informative
+        best_history = [(observation, action_index, best_env.action_list[action_index]) for observation, action_index in best_history]
         with open(config_path + "best_history.pickle", "wb") as f:
             pickle.dump(best_history, f)
 

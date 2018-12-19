@@ -5,10 +5,13 @@ from __future__ import print_function, division
 from .abstract_environment import AbstractEnvironment
 from copy import deepcopy
 from itertools import chain
+import numpy as np
 try:
     from future_builtins import filter
 except ImportError:
     pass
+
+np.seterr(over="raise")
 
 ACTION_PURIFY = "purify"
 ACTION_SWAP = "swap"
@@ -249,7 +252,13 @@ class TaskEnvironment(AbstractEnvironment):
             raise ValueError("Action with number %s is not available at this time." % action)
         my_action = self.action_list[action]
         if my_action.type == ACTION_PURIFY:
-            self._purify(my_action.stations)
+            try:
+                self._purify(my_action.stations)
+            except FloatingPointError:
+                reward = 0
+                episode_finished = 1
+                observation = self._observation()
+                return observation, reward, episode_finished, {"available_actions": self.available_actions}
         elif my_action.type == ACTION_SWAP:
             self._entanglement_swapping(my_action.station)
         elif my_action.type == ACTION_COMPOSITE:
