@@ -38,8 +38,8 @@ def merge_collections(*args):
     return SolutionCollection(initial_dict=my_dict)
 
 
-def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity):
-    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p_gates)
+def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity, p=p_gates):
+    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p)
     while len(env.state) > 1:
         # purify all pairs to working fidelity
         for i, pair in enumerate(env.state):
@@ -72,9 +72,9 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
     return env.get_resources()
 
 
-def naive_constant(repeater_length, start_fid, target_fid):
+def naive_constant(repeater_length, start_fid, target_fid, p=p_gates):
     working_fids = np.arange(0.85, 0.999, 0.001)
-    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid) for wf in working_fids])
+    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid, p) for wf in working_fids])
     return my_constant
 
 
