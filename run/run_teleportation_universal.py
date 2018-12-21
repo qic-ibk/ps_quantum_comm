@@ -11,13 +11,13 @@ import numpy as np
 import os
 
 num_processes = 64  # change according to cluster computer you choose
-num_agents = 100
+num_agents = 500
 etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
-n_trials = 100000
+n_trials = 10**6
 result_path = "results/teleportation/universal_gates/raw/"
 
 
-def run_teleportation(i, eta, label_multiplicator=10, sparsity=10):
+def run_teleportation(i, eta, label_multiplicator=10, sparsity=20):
     np.random.seed()
     env = TeleportationUniversalEnv()
     agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense", reset_glow=True)

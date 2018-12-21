@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 import os
 
 num_agents = 100
-sparsity = 10
+sparsity = 20
 etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
-result_path_clifford = "results/teleportation/clifford_gates/raw/"
+# result_path_clifford = "results/teleportation/clifford_gates/raw/"
 result_path_universal = "results/teleportation/universal_gates/raw/"
-plot_path_clifford = "results/teleportation/clifford_gates/plot_ready/"
+# plot_path_clifford = "results/teleportation/clifford_gates/plot_ready/"
 plot_path_universal = "results/teleportation/universal_gates/plot_ready/"
 
 
@@ -115,5 +115,5 @@ def evaluate(result_path, plot_path):
 
 
 if __name__ == "__main__":
-    evaluate(result_path_clifford, plot_path_clifford)
+    # evaluate(result_path_clifford, plot_path_clifford)
     evaluate(result_path_universal, plot_path_universal)
