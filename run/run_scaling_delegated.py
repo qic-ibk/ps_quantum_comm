@@ -172,8 +172,10 @@ if __name__ == "__main__":
     # fids = np.arange(0.6, 1.00, 0.05)
     # fids = np.arange(0.6, 1.00, 0.10)
     # start_fids = it.product(fids, repeat=repeater_length)
-    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
-    for i, start_fid in enumerate(start_fids):
+    # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+    start_fids = [(2, [0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6])]
+    # for i, start_fid in enumerate(start_fids):
+    for i, start_fid in start_fids:
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
         assert_dir(config_path)
         print(start_fid)
