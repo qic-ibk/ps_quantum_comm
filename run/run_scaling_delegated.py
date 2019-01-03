@@ -13,7 +13,7 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 48
+num_processes = 64
 num_agents = 128
 num_trials = 10000
 repeater_length = 8
