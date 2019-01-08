@@ -4,7 +4,7 @@ import pickle
 import matplotlib.pyplot as plt
 from run.run_scaling_delegated import naive_constant
 
-start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]
 results_path = "results/scaling_delegated/p_gates98/"
 p_gates = 0.98
 
@@ -34,6 +34,9 @@ for i, start_fid in enumerate(start_fids):
     plt.show()
     resource_list = np.loadtxt(path + "resource_list.txt")
     try:
+        # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
+        # print(dict(zip(*np.unique(resource_list, return_counts=True))))
+        # print(resource_list)
         plt.hist(resource_list, bins=300)
     except IndexError:
         plt.axvline(x=resource_list[0])
