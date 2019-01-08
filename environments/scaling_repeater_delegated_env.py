@@ -7,11 +7,11 @@ from copy import deepcopy
 from itertools import chain
 import numpy as np
 try:
-    from future_builtins import filter
+    from future_builtins import filter  # python 2 compatibility
 except ImportError:
     pass
 
-np.seterr(over="raise")
+np.seterr(over="raise")  # can happen if resources get too high and should be counted as a failure
 
 ACTION_PURIFY = "purify"
 ACTION_SWAP = "swap"
