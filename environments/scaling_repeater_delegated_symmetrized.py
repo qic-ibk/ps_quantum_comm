@@ -166,7 +166,7 @@ class TaskEnvironment(object):
         for _, action_index in history:
             action = self.action_list[action_index]
             if action.type == ACTION_COMPOSITE:
-                block_actions = self.delegated_solutions.get_block_action(self.state[0].fid)
+                block_actions = self.delegated_solutions.get_block_action(self.state[0].fid, action.block_size)
                 action_sequence += block_actions
                 self.move(action_index)
             else:
@@ -193,7 +193,7 @@ class TaskEnvironment(object):
                 self._entanglement_swapping(station)
             self._remove_long_blocks()
         elif my_action.type == ACTION_COMPOSITE:
-            block_actions = self.delegated_solutions.get_block_action(self.state[0].fid)
+            block_actions = self.delegated_solutions.get_block_action(self.state[0].fid, my_action.block_size)
             if block_actions is None:  # abort if no action is found
                 reward = 0
                 episode_finished = 1
