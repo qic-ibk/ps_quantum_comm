@@ -121,7 +121,7 @@ class TaskEnvironment(object):
 
     def _remove_long_blocks(self):
         for block_size in self.available_block_lengths:
-            if block_size < len(self.state):
+            if block_size > len(self.state):
                 self._remove_action(_Action(ACTION_COMPOSITE, block_size))
 
     def _observation(self):
@@ -176,6 +176,7 @@ class TaskEnvironment(object):
 
     def move(self, action):
         if action not in self.available_actions:
+            self._remove_long_blocks()
             raise ValueError("Action with number %s is not available at this time." % action)
         my_action = self.action_list[action]
         if my_action.type == ACTION_PURIFY:
@@ -192,6 +193,10 @@ class TaskEnvironment(object):
             for station in stations:
                 self._entanglement_swapping(station)
             self._remove_long_blocks()
+            if len(self.state) == 1:  # no more swapping if no middle station is there anymore
+                # print("swap is being removed")
+                self._remove_action(_Action(ACTION_SWAP))
+                # print(self.available_actions)
         elif my_action.type == ACTION_COMPOSITE:
             block_actions = self.delegated_solutions.get_block_action(self.state[0].fid, my_action.block_size)
             if block_actions is None:  # abort if no action is found
