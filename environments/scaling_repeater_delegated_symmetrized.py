@@ -213,8 +213,8 @@ class TaskEnvironment(object):
 
         return observation, reward, episode_finished, {"available_actions": self.available_actions}
 
-        def get_resources(self):
-            if self._check_success():
-                return self.state[0].resources
-            else:
-                return float("NaN")
+    def get_resources(self):
+        if self._check_success():
+            return self.state[0].resources
+        else:
+            return float("NaN")
