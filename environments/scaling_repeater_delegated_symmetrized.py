@@ -149,6 +149,13 @@ class TaskEnvironment(object):
                 return True
         return False
 
+    def _reward_function(self, resources):
+        reward = (self.reward_constant / resources)**self.reward_exponent
+        if reward > 1:
+            self.reward_constant = resources
+            reward = 1
+        return reward
+
     def composite_action_from_history(self, history):
         """Return a dictionary that can be used in a new environment with higher length.
 
@@ -159,9 +166,8 @@ class TaskEnvironment(object):
         for _, action_index in history:
             action = self.action_list[action_index]
             if action.type == ACTION_COMPOSITE:
-                block_actions = self._find_delegated_action(action)
-                action_list = self._shift_actions(block_actions, action.involved_links)
-                action_sequence += action_list
+                block_actions = self.delegated_solutions.get_block_action(self.state[0].fid)
+                action_sequence += block_actions
                 self.move(action_index)
             else:
                 self.move(action_index)
@@ -206,3 +212,9 @@ class TaskEnvironment(object):
             episode_finished = int(self._check_failed())
 
         return observation, reward, episode_finished, {"available_actions": self.available_actions}
+
+        def get_resources(self):
+            if self._check_success():
+                return self.state[0].resources
+            else:
+                return float("NaN")
