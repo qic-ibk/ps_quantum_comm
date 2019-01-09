@@ -13,7 +13,7 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 48
+num_processes = 32
 num_agents = 128
 num_trials = 10000
 repeater_length = 2
@@ -64,8 +64,8 @@ def naive_constant(repeater_length, start_fid, target_fid, p=p_gates):
     return my_constant
 
 
-def resources_from_block_action(start_fid, action_sequence):
-    rep_length = len(start_fid)
+def resources_from_block_action(start_fid, block_size, action_sequence):
+    rep_length = block_size
     env = Env(length=rep_length, start_fid=start_fid, target_fid=target_fid, p=p_gates)
     for action in action_sequence:
         action_index = env.action_list.index(action)
@@ -99,7 +99,7 @@ class SolutionCollection(object):
         key = (int(fid * 100), block_size)
         if key in self.solution_dict:
             old_action_list = self.solution_dict[key]
-            if resources_from_block_action(fid, action_list) >= resources_from_block_action(fid, old_action_list):
+            if resources_from_block_action(fid, block_size, action_list) >= resources_from_block_action(fid, block_size, old_action_list):
                 return
             else:  # if it uses fewer results, overwrite solution
                 warn("Found a better solution for " + str(key))
@@ -148,8 +148,8 @@ if __name__ == "__main__":
         sc.load(result_path + "/solution_collection.pickle")
     except IOError:
         warn("SolutionCollection not found - creating new one.")
-    # start_fids = np.arange(0.6, 1.00, 0.05)
-    start_fids = np.arange(0.6, 1.00, 0.10)
+    start_fids = np.arange(0.6, 1.00, 0.05)
+    # start_fids = np.arange(0.6, 1.00, 0.10)
     # start_fids = it.product(fids, repeat=repeater_length)
     # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
