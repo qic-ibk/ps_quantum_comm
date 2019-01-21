@@ -7,8 +7,10 @@ import numpy as np
 from .libraries import matrix as mat
 from warnings import warn
 
-np.seterr(divide="raise")
+np.seterr(divide="raise", invalid="raise")
 
+
+# NOTE: T is the x-basis variant here
 H_0 = 0
 T_0 = 1
 H_1 = 2
@@ -42,10 +44,17 @@ ACTIONS_Q3 = [6, 7, 9, 13]
 
 Ha = mat.Ha
 T = np.array([[1, 0], [0, 1 / np.sqrt(2) * (1 + 1j)]], dtype=np.complex)
+# carfeful: T is the x-variant
+T = np.dot(np.dot(Ha, T), Ha)
+# even more simplified: only clifford - ugly hack
+T = np.dot(T, T)
 CNOT = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 Id = np.eye(2)
 
 phiplus = mat.phiplus
+psiplus = mat.psiplus
+phiminus = mat.phiminus
+psiminus = mat.psiminus
 
 
 def tensor(*args):
@@ -84,6 +93,49 @@ proj_minus_3 = tensor(Id, Id, Id, mat.Pz1)
 def fidelity(rho):
     fid = np.dot(np.dot(mat.H(mat.phiplus), rho), mat.phiplus)
     return float(fid[0, 0])
+
+
+def bbpssw_step(input_fid):
+    f = input_fid
+    p_suc = f**2 + 2 * f * (1 - f) / 3 + 5 * (1 - f)**2 / 9
+    output_fid = (f**2 + (1 - f)**2 / 9) / p_suc
+    return output_fid, p_suc
+
+
+def proj(phi):
+    return np.dot(phi, H(phi))
+
+
+def dejmps_step(input_state):
+    lambda_00 = np.dot(np.dot(H(phiplus), input_state), phiplus)[0, 0]
+    lambda_01 = np.dot(np.dot(H(psiplus), input_state), psiplus)[0, 0]
+    lambda_10 = np.dot(np.dot(H(phiminus), input_state), phiminus)[0, 0]
+    lambda_11 = np.dot(np.dot(H(psiminus), input_state), psiminus)[0, 0]
+    p_suc = (lambda_00 + lambda_11)**2 + (lambda_01 + lambda_10)**2
+    output_state = ((lambda_00**2 + lambda_11**2) * proj(phiplus) +
+                    2 * lambda_00 * lambda_11 * proj(phiminus) +
+                    (lambda_01**2 + lambda_10**2) * proj(psiplus) +
+                    2 * lambda_01 * lambda_10 * proj(psiminus))
+    output_state = output_state / p_suc  # renormalize!
+    return output_state, p_suc
+
+
+def get_constant(input_state, depolarize, recurrence_steps):
+    input_fid = fidelity(input_state)
+    p_suc = 1.0
+    if depolarize:
+        fid = input_fid
+        for i in range(recurrence_steps):
+            fid, p_step = bbpssw_step(fid)
+            p_suc *= p_step
+    else:
+        state = input_state
+        for i in range(recurrence_steps):
+            state, p_step = dejmps_step(state)
+            p_suc *= p_step
+        fid = fidelity(state)
+    const = p_suc**(1 / recurrence_steps) * (fid - input_fid)
+    return float(const)
 
 
 class EPPEnv(AbstractEnvironment):
@@ -134,19 +186,18 @@ class EPPEnv(AbstractEnvironment):
         my_env = EPPEnv()
         my_env.reset()
         initial_fidelity = fidelity(mat.ptrace(my_env.state, [1, 3]))
-        # # if (fidelity(new_state) - initial_fidelity) > 0:
-        # #     return 10
-        # # else:
-        # #     return 0
-        # reward = probability / 10**-12 * max(fidelity(new_state) - initial_fidelity, 0)
         delta_f = (fidelity(new_state) - initial_fidelity)
         if delta_f < 10**-15:
             reward = 0
         else:
-            reward = probability * delta_f / 0.7048 / (0.7675936435868332 - 0.73)
+            # this whole constant calculation really, really shouldn't happen every step
+            aux = np.dot(phiplus, H(phiplus))
+            start_state = mat.wnoise_all(aux, self.q)
+            const = get_constant(start_state, depolarize=depolarize, recurrence_steps=recurrence_steps)
+            reward = probability**(1 / recurrence_steps) * delta_f / const
             # print(probability, (fidelity(new_state) - initial_fidelity))
             # print(accepted_actions_lists)
-        return reward
+        return max(reward, 0)
 
     def reset(self, input_state=None):  # makes it easy to initialize with different starting states for the meta-analysis
         if input_state is not None:
@@ -234,7 +285,10 @@ class EPPEnv(AbstractEnvironment):
         state = self._apply(projector)
         probability = float(np.trace(state))
         # print(probability)
-        self.state = state / probability
+        try:
+            self.state = state / probability
+        except FloatingPointError:  # e.g. probability is zero
+            self.state = 0 * state
         self.branch_probability *= probability
         return
 
