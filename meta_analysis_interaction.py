@@ -79,7 +79,7 @@ class MetaAnalysisInteraction(object):
             self.partial_trial_list += [partial_trial]
             self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info)
             # now the evaluating and updating part starts
-            reward = self.primary_env.multiverse_reward(self.partial_trial_list)
+            reward = self.primary_env.multiverse_reward(self.partial_trial_list, depolarize=False, recurrence_steps=10)
             self.merge_reward(reward)
             reward_curve[i_trial] = reward
         res["reward_curve"] = reward_curve
