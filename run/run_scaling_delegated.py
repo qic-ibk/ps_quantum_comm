@@ -16,9 +16,8 @@ import itertools as it
 num_processes = 48
 num_agents = 128
 num_trials = 10000
-repeater_length = 8
-# allowed_block_lengths = [i for i in range(2, repeater_length)]
-allowed_block_lengths = [2, 3, 4]
+repeater_length = 2
+allowed_block_lengths = []
 p_gates = 0.98
 eta = 0
 target_fid = 0.9
@@ -166,13 +165,14 @@ if __name__ == "__main__":
     start_time = time()
     assert_dir(result_path)
     sc = SolutionCollection()
-    # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
-    # exit()
-    sc.load(result_path + "/solution_collection.pickle")
-    # fids = np.arange(0.6, 1.00, 0.05)
+    try:
+        sc.load(result_path + "/solution_collection.pickle")
+    except IOError:
+        warn("SolutionCollection not found - creating new one.")
+    fids = np.arange(0.6, 1.00, 0.05)
     # fids = np.arange(0.6, 1.00, 0.10)
-    # start_fids = it.product(fids, repeat=repeater_length)
-    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+    start_fids = it.product(fids, repeat=repeater_length)
+    # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
         assert_dir(config_path)
