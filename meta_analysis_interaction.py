@@ -24,7 +24,7 @@ class MetaAnalysisInteraction(object):
         self.primary_env = environment
         self.partial_trial_list = []
 
-    def run_branch_until_finished(self, partial_multiverse_trial, observation, reward, episode_finished, info):
+    def run_branch_until_finished(self, partial_multiverse_trial, observation, reward, episode_finished, info, file=None):
         agent = partial_multiverse_trial.agent
         env = partial_multiverse_trial.env
         episode_finished = episode_finished
@@ -32,15 +32,21 @@ class MetaAnalysisInteraction(object):
             action = agent.deliberate_and_learn(observation, reward, episode_finished, info)
             # action = int(input(repr((observation, reward, episode_finished, info)) + "\n Action: "))  # debugging
             partial_multiverse_trial.history_of_branch += [(list(observation), action)]  # important to create copy of list, because environment may modify the observation in-place
+            if file is not None:
+                file.write(str(partial_multiverse_trial.history_of_branch[-1]) + "\n")
             split, split_actions = env.is_splitting_action(action)
             if split is True:
+                if file is not None:
+                    file.write("Branching off!" + "\n")
                 new_agent = agent  # we don't need the very slow deepcopy here, because we do not use the built-in learning features of the agent
                 new_env = deepcopy(env)
                 new_branch_action = split_actions[1]
                 new_observation, new_reward, new_episode_finished, new_info = new_env.move(new_branch_action)
                 new_partial_trial = PartialMultiverseTrial(new_agent, new_env)
                 self.partial_trial_list += [new_partial_trial]
-                self.run_branch_until_finished(new_partial_trial, new_observation, new_reward, new_episode_finished, new_info)  # haha, recursion!
+                self.run_branch_until_finished(new_partial_trial, new_observation, new_reward, new_episode_finished, new_info, file=file)  # haha, recursion!
+                if file is not None:
+                    file.write(str("Back to initial branch." + "\n"))
             branch_action = split_actions[0]
             observation, reward, episode_finished, info = env.move(branch_action)
         return  # something
@@ -59,7 +65,7 @@ class MetaAnalysisInteraction(object):
             self.primary_agent._learning(reward)
             self.primary_agent.brain.reset_glow()
 
-    def single_learning_life(self, n_trials, verbose_trial_count=False):
+    def single_learning_life(self, n_trials, verbose_trial_count=False, last_history_file=None):
         reward_curve = np.zeros(n_trials)
         res = {}
         for i_trial in range(n_trials):
@@ -77,7 +83,11 @@ class MetaAnalysisInteraction(object):
                 info.update(setup[1])
             partial_trial = PartialMultiverseTrial(self.primary_agent, self.primary_env)
             self.partial_trial_list += [partial_trial]
-            self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info)
+            if i_trial == n_trials - 1 and last_history_file is not None:
+                with open(last_history_file, "w") as f:
+                    self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info, file=f)
+            else:
+                self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info, file=None)
             # now the evaluating and updating part starts
             reward = self.primary_env.multiverse_reward(self.partial_trial_list, depolarize=False, recurrence_steps=10)
             self.merge_reward(reward)
