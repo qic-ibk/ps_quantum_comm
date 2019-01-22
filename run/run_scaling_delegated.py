@@ -83,7 +83,7 @@ def distance(first, second):
 
 
 def all_smaller(first, second):
-    return all([x < y for x, y in zip(first, second)])
+    return all([x <= y for x, y in zip(first, second)])
 
 
 def resources_from_block_action(start_fid, action_sequence):
