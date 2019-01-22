@@ -1,7 +1,7 @@
 """Run the scaling environment using blocks of different scales."""
 import os, sys; sys.path.insert(0, os.path.abspath("."))
-import environments.scaling_repeater_delegated_env as sr
-from environments.scaling_repeater_delegated_env import TaskEnvironment as Env
+import environments.scaling_repeater_delegated_symmetrized as sr
+from environments.scaling_repeater_delegated_symmetrized import TaskEnvironment as Env
 from agents.ps_agent_changing_actions import ChangingActionsPSAgent
 from general_interaction import Interaction
 import numpy as np
@@ -13,16 +13,15 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 48
+num_processes = 32
 num_agents = 128
 num_trials = 10000
-repeater_length = 8
-# allowed_block_lengths = [i for i in range(2, repeater_length)]
-allowed_block_lengths = [2, 3, 4]
+repeater_length = 2
+allowed_block_lengths = []
 p_gates = 0.98
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated/p_gates98/"
+result_path = "results/scaling_delegated_symmetrized/p_gates98/"
 
 
 def assert_dir(path):
@@ -42,29 +41,16 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
     env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p)
     while len(env.state) > 1:
         # purify all pairs to working fidelity
-        for i, pair in enumerate(env.state):
-            # print(i, "in purify to working")
-            action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, pair.stations))
-            while env.state[i].fid < working_fidelity:
-                fid_before = env.state[i].fid
-                env.move(action_index)
-                if env.state[i].fid <= fid_before:
-                    return np.nan
-        # ent_swap the shortest distance
-        stations = []
-        distances = []
-        for i, pair in enumerate(env.state[:-1]):
-            # print(i, "in distance evaluation")
-            stations += [pair.right_station]
-            other_pair = env.state[i + 1]
-            distances += [other_pair.right_station - pair.left_station]
-        station_index = np.argmin(distances)
-        station = stations[station_index]
-        action_index = env.action_list.index(sr._Action(sr.ACTION_SWAP, station))
+        action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY))
+        while env.state[0].fid < working_fidelity:
+            fid_before = env.state[0].fid
+            env.move(action_index)
+            if env.state[0].fid <= fid_before:
+                return np.nan
+        action_index = env.action_list.index(sr._Action(sr.ACTION_SWAP))
         env.move(action_index)
     while env.state[0].fid < target_fidelity:
-        # print("final purification")
-        action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, env.state[0].stations))
+        action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY))
         fid_before = env.state[0].fid
         env.move(action_index)
         if env.state[0].fid <= fid_before:
@@ -78,16 +64,8 @@ def naive_constant(repeater_length, start_fid, target_fid, p=p_gates):
     return my_constant
 
 
-def distance(first, second):
-    return sum([abs(x - y) for x, y in zip(first, second)])
-
-
-def all_smaller(first, second):
-    return all([x <= y for x, y in zip(first, second)])
-
-
-def resources_from_block_action(start_fid, action_sequence):
-    rep_length = len(start_fid)
+def resources_from_block_action(start_fid, block_size, action_sequence):
+    rep_length = block_size
     env = Env(length=rep_length, start_fid=start_fid, target_fid=target_fid, p=p_gates)
     for action in action_sequence:
         action_index = env.action_list.index(action)
@@ -99,15 +77,15 @@ class SolutionCollection(object):
     def __init__(self, initial_dict={}):
         self.solution_dict = initial_dict
 
-    def get_block_action(self, fid_list):
-        dict_key = tuple((int(fid * 100) for fid in fid_list))  # getting actions is rounded down
+    def get_block_action(self, fid, block_size):
+        dict_key = (int(fid * 100), block_size)  # getting actions is rounded down
         try:
             return self.solution_dict[dict_key]  # raises KeyError if the solution is not present
         except KeyError:
-            smaller_keys = filter(lambda x: len(x) == len(dict_key) and all_smaller(x, dict_key), self.solution_dict)
+            smaller_keys = filter(lambda x: x[1] == block_size and x[0] <= dict_key[0], self.solution_dict)
             try:
-                dict_key = min(smaller_keys, key=lambda x: distance(x, dict_key))
-            except ValueError as e:
+                dict_key = max(smaller_keys, key=lambda x: x[0])
+            except ValueError:
                 return None
                 # my_str = "\n"
                 # my_str += "fid_list: " + str(fid_list) + "\n"
@@ -117,11 +95,11 @@ class SolutionCollection(object):
                 # raise type(e)(e.message + my_str)
             return self.solution_dict[dict_key]
 
-    def add_block_action(self, fid_list, action_list):
-        key = tuple((int(fid * 100) for fid in fid_list))
+    def add_block_action(self, fid, block_size, action_list):
+        key = (int(fid * 100), block_size)
         if key in self.solution_dict:
             old_action_list = self.solution_dict[key]
-            if resources_from_block_action(fid_list, action_list) >= resources_from_block_action(fid_list, old_action_list):
+            if resources_from_block_action(fid, block_size, action_list) >= resources_from_block_action(fid, block_size, old_action_list):
                 return
             else:  # if it uses fewer results, overwrite solution
                 warn("Found a better solution for " + str(key))
@@ -166,13 +144,14 @@ if __name__ == "__main__":
     start_time = time()
     assert_dir(result_path)
     sc = SolutionCollection()
-    # sc.save(result_path + "/solution_collection.pickle")  # to reset everything
-    # exit()
-    sc.load(result_path + "/solution_collection.pickle")
-    # fids = np.arange(0.6, 1.00, 0.05)
-    # fids = np.arange(0.6, 1.00, 0.10)
+    try:
+        sc.load(result_path + "/solution_collection.pickle")
+    except IOError:
+        warn("SolutionCollection not found - creating new one.")
+    start_fids = np.arange(0.6, 1.00, 0.05)
+    # start_fids = np.arange(0.6, 1.00, 0.10)
     # start_fids = it.product(fids, repeat=repeater_length)
-    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
+    # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
     for i, start_fid in enumerate(start_fids):
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
         assert_dir(config_path)
@@ -195,7 +174,7 @@ if __name__ == "__main__":
         best_history = res_list[min_index]["last_trial_history"]
         block_action = best_env.composite_action_from_history(best_history)
         action_sequence = block_action["actions"]
-        sc.add_block_action(fid_list=start_fid, action_list=action_sequence)  # save for later use
+        sc.add_block_action(fid=start_fid, block_size=repeater_length, action_list=action_sequence)  # save for later use
         best_resources = res_list[min_index]["resources"]
         np.save(config_path + "best_resources.npy", best_resources)
         with open(config_path + "block_action.pickle", "wb") as f:
@@ -207,35 +186,3 @@ if __name__ == "__main__":
 
     sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
-
-# # plot best resource curve
-# best_resources = res_list[min_index]["resources"]
-# np.save("results/best_resources_%d.npy" % repeater_length, best_resources)
-# with open("results/block_action_%d.pickle" % repeater_length, "wb") as f:
-#     pickle.dump(block_action, f)
-# with open("results/best_history_%d.pickle" % repeater_length, "wb") as f:
-#     pickle.dump(best_history, f)
-# print("repeater length %d took %.2f minutes" % (repeater_length, (time() - start_time) / 60))
-# # plt.scatter(np.arange(1, len(best_resources) + 1), best_resources, s=20)
-# # plt.yscale("log")
-# # plt.axhline(y=reward_constants[repeater_length], color="r")
-# # plt.title("repeater length:" + str(repeater_length))
-# # plt.show()
-
-
-# exit()
-#
-#
-
-
-
-# auxlist = []
-# for i in range(2, 9):
-#     ffs = np.arange(0.85, 0.999, 0.001)
-#     y = [generate_constant(i, q_initial, j, 0.9) for j in ffs]
-#     print(i, np.min(y))
-#     auxlist += [np.min(y)]
-#     # plt.plot(ffs, y)
-#     # plt.title(str(i))
-#     # plt.show()
-# print(auxlist)
