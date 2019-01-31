@@ -6,6 +6,7 @@ import os
 num_agents = 100
 sparsity = 10
 result_path = "results/epp_modified/raw/"
+plot_path = "results/epp_modified/plot_ready/"
 
 
 def assert_dir(path):
@@ -15,14 +16,19 @@ def assert_dir(path):
 
 if __name__ == "__main__":
     assert_dir(result_path)
+    assert_dir(plot_path)
     reward_curves = [np.load(result_path + "reward_curve_%d.npy" % i) for i in range(num_agents)]
     average_curve = np.sum(reward_curves, axis=0) / num_agents
+    np.savetxt(plot_path + "average_reward_sparsity_%d.txt" % sparsity, average_curve, fmt="%.6f")
     plt.plot(np.arange(1, len(average_curve) * sparsity + 1, sparsity), average_curve)
     plt.xlabel("Number of trials")
     plt.ylabel("Average reward")
+    plt.savefig(plot_path + "average_reward.png")
     plt.show()
     found_rewards = [reward_curve[-1] for reward_curve in reward_curves]
+    np.savetxt(plot_path + "found_rewards.txt", found_rewards, fmt="%.6f")
     plt.hist(found_rewards, bins=50)
     plt.xlabel("Reward")
     plt.ylabel("Number of agents")
+    plt.savefig(plot_path + "found_rewards_hist.png")
     plt.show()
