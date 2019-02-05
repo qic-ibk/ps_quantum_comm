@@ -4,14 +4,16 @@ import pickle
 import matplotlib.pyplot as plt
 from run.run_scaling_delegated import naive_constant
 
-start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]
-results_path = "results/scaling_delegated/p_gates98/"
+# start_fids = [(0.7,) * 2]
+# start_fids = [(0.65,) * 2]
+start_fids = [(0.75,) * 2]
+results_path = "results/scaling_delegated/p_gates98/length2_27/"
 p_gates = 0.98
 
 
 for i, start_fid in enumerate(start_fids):
     print(start_fids[i])
-    path = results_path + "length8_%d/" % i
+    path = results_path
     with open(path + "best_history.pickle", "rb") as f:  # best history is actually quite useless like this - we need actions instead of action_indices
         history = pickle.load(f)
     action_history = [action for _, _, action in history]
@@ -24,8 +26,8 @@ for i, start_fid in enumerate(start_fids):
     a = "\n".join(a)
     # print(a)
     resources = np.load(path + "best_resources.npy")
-    const = naive_constant(repeater_length=8, start_fid=start_fid, target_fid=0.9, p=p_gates)
-    # resources = resources[:1000]
+    const = naive_constant(repeater_length=len(start_fid), start_fid=start_fid, target_fid=0.9, p=p_gates)
+    # resources = resources[:1500]
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
     plt.axhline(y=const, color='r')
