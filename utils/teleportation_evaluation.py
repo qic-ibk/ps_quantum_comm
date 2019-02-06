@@ -54,7 +54,15 @@ def cumulative_steps(count_dict, failure_number=10000):
     elif len(auxlist) == 3:
         aux = max(auxlist, key=lambda x: x[0])
         length_list = [length for count, length in auxlist] + [aux[1]]
-        return np.sum([length_list])
+        return np.sum(length_list)
+    elif len(auxlist) == 2:
+        counts = [count < 115 and count > 85 for count, length in auxlist]
+        if np.any(counts):
+            length_list = [length for count, length in auxlist] * 2
+        else:
+            aux = max(auxlist, key=lambda x: x[0])
+            length_list = [length for count, length in auxlist] + [aux[1]] * 2
+        return np.sum(length_list)
     else:
         raise ValueError("Could not compute cumulative_steps for " + repr(count_dict))
 
