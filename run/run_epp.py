@@ -8,6 +8,9 @@ from time import time
 import numpy as np
 import os
 import traceback
+# from memory_profiler import profile
+import tracemalloc
+tracemalloc.start()
 
 
 def assert_dir(path):
@@ -15,24 +18,27 @@ def assert_dir(path):
         os.makedirs(path)
 
 
-num_processes = 48  # change according to cluster computer you choose
-num_agents = 100
-n_trials = 500000
+# num_processes = 48  # change according to cluster computer you choose
+# num_agents = 100
+# n_trials = 500000
+n_trials = 500
 eta = 0
-result_path = "results/epp_modified/raw/"
+# result_path = "results/epp_modified/raw/"
 
 
+# @profile(precision=4)
 def run_epp(i, sparsity=10):
     np.random.seed()
     env = EPPEnv()
     agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")  # glow reset is handled by MetaAnalysis Interaction
     interaction = MetaAnalysisInteraction(agent, env)
-    last_history_file = result_path + "last_trial_history_%d.txt" % i
+    # last_history_file = result_path + "last_trial_history_%d.txt" % i
+    last_history_file = None
     res = interaction.single_learning_life(n_trials, verbose_trial_count=False, last_history_file=last_history_file)
     reward_curve = res["reward_curve"]
     if sparsity != 1:
         reward_curve = reward_curve[::sparsity]
-    np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
+    # np.save(result_path + "reward_curve_%d.npy" % i, reward_curve)
 
 
 class RunCallable(object):  # this solution is necessary because only top-level objects can be pickled
@@ -50,10 +56,16 @@ class RunCallable(object):  # this solution is necessary because only top-level 
 
 if __name__ == "__main__":
     start_time = time()
-    p = Pool(processes=num_processes)
-    assert_dir(result_path)
-    my_callable = RunCallable()
-    p.map_async(my_callable, np.arange(num_agents))
-    p.close()
-    p.join()
+    # p = Pool(processes=num_processes)
+    # assert_dir(result_path)
+    # my_callable = RunCallable()
+    # p.map_async(my_callable, np.arange(num_agents))
+    # p.close()
+    # p.join()
+    RunCallable()(0)
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+    print("[ Top 10 ]")
+    for stat in top_stats[:10]:
+        print(stat)
     print("The whole script took %.2f minutes." % ((time() - start_time) / 60))

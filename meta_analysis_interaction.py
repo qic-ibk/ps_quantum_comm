@@ -5,6 +5,7 @@ from copy import deepcopy
 import numpy as np
 from environments.libraries import matrix as mat
 from environments.epp_env import EPPEnv
+from memory_profiler import profile
 
 
 class PartialMultiverseTrial(object):
@@ -24,6 +25,7 @@ class MetaAnalysisInteraction(object):
         self.primary_env = environment
         self.partial_trial_list = []
 
+    # @profile
     def run_branch_until_finished(self, partial_multiverse_trial, observation, reward, episode_finished, info, file=None):
         agent = partial_multiverse_trial.agent
         env = partial_multiverse_trial.env
@@ -51,6 +53,7 @@ class MetaAnalysisInteraction(object):
             observation, reward, episode_finished, info = env.move(branch_action)
         return  # something
 
+    # @profile(precision=4)
     def merge_reward(self, reward):
         # note: this has weird behavior when glow is active because of the different length of solutions
         self.primary_agent.history_since_last_reward = []  # just to make it explicit
@@ -65,6 +68,7 @@ class MetaAnalysisInteraction(object):
             self.primary_agent._learning(reward)
             self.primary_agent.brain.reset_glow()
 
+    # @profile(precision=4)
     def single_learning_life(self, n_trials, verbose_trial_count=False, last_history_file=None):
         reward_curve = np.zeros(n_trials)
         res = {}
