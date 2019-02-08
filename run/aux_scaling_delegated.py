@@ -163,7 +163,7 @@ def run_scaling_delegated(num_processes, num_agents, num_trials, repeater_length
     for i, start_fid in enumerate(start_fids):
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
         assert_dir(config_path)
-        print(start_fid)
+        # print(start_fid)
         aux = [(repeater_length, sc, start_fid, target_fid, num_trials, allowed_block_lengths, p_gates) for i in range(num_agents)]
         p = Pool(processes=num_processes)
         interactions, res_list = zip(*p.map(run, aux))
