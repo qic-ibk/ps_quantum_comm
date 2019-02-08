@@ -11,17 +11,6 @@ from multiprocessing import Pool
 import pickle
 import traceback
 from warnings import warn
-import itertools as it
-
-num_processes = 48
-num_agents = 128
-num_trials = 10000
-repeater_length = 8
-allowed_block_lengths = [2, 3, 4]
-p_gates = 0.98
-eta = 0
-target_fid = 0.9
-result_path = "results/scaling_delegated/p_gates98/"
 
 
 def assert_dir(path):
@@ -37,12 +26,11 @@ def merge_collections(*args):
     return SolutionCollection(initial_dict=my_dict)
 
 
-def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity, p=p_gates):
-    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p)
+def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity, p_gates):
+    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p_gates)
     while len(env.state) > 1:
         # purify all pairs to working fidelity
         for i, pair in enumerate(env.state):
-            # print(i, "in purify to working")
             action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, pair.stations))
             while env.state[i].fid < working_fidelity:
                 fid_before = env.state[i].fid
@@ -53,7 +41,6 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
         stations = []
         distances = []
         for i, pair in enumerate(env.state[:-1]):
-            # print(i, "in distance evaluation")
             stations += [pair.right_station]
             other_pair = env.state[i + 1]
             distances += [other_pair.right_station - pair.left_station]
@@ -61,8 +48,8 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
         station = stations[station_index]
         action_index = env.action_list.index(sr._Action(sr.ACTION_SWAP, station))
         env.move(action_index)
+    # final purification
     while env.state[0].fid < target_fidelity:
-        # print("final purification")
         action_index = env.action_list.index(sr._Action(sr.ACTION_PURIFY, env.state[0].stations))
         fid_before = env.state[0].fid
         env.move(action_index)
@@ -71,9 +58,9 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
     return env.get_resources()
 
 
-def naive_constant(repeater_length, start_fid, target_fid, p=p_gates):
+def naive_constant(repeater_length, start_fid, target_fid, p_gates):
     working_fids = np.arange(0.85, 0.999, 0.001)
-    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid, p) for wf in working_fids])
+    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid, p_gates) for wf in working_fids])
     return my_constant
 
 
@@ -135,13 +122,13 @@ class SolutionCollection(object):
             self.solution_dict = pickle.load(f)
 
 
-def setup_interaction(repeater_length, solution_collection, start_fid):
+def setup_interaction(repeater_length, solution_collection, start_fid, target_fid, allowed_block_lengths, p_gates):
     # print("No. of collected actions:" + str(len(collection)))
-    reward_constant = naive_constant(repeater_length, start_fid, target_fid)
+    reward_constant = naive_constant(repeater_length, start_fid, target_fid, p_gates)
     if np.isnan(reward_constant):
         reward_constant = np.finfo(np.float32).max  # this will give the duty of determining the constant solely to
     env = Env(length=repeater_length, available_block_lengths=allowed_block_lengths, start_fid=start_fid, target_fid=target_fid, p=p_gates, reward_constant=reward_constant, reward_exponent=2, delegated_solutions=solution_collection)
-    agent = ChangingActionsPSAgent(env.n_base_actions, 0, eta, "softmax", 1, "dense", reset_glow=True)
+    agent = ChangingActionsPSAgent(n_actions=env.n_base_actions, ps_gamma=0, ps_eta=0, policy_type="softmax", ps_alpha=1, brain_type="dense", reset_glow=True)
     interaction = Interaction(agent=agent, environment=env)
     return interaction
 
@@ -151,8 +138,12 @@ def run(aux):
         np.random.seed()
         repeater_length = aux[0]
         solution_collection = aux[1]
-        q_initial = aux[2]
-        interaction = setup_interaction(repeater_length, solution_collection, q_initial)
+        start_fid = aux[2]
+        target_fid = aux[3]
+        num_trials = aux[4]
+        allowed_block_lengths = aux[5]
+        p_gates = aux[6]
+        interaction = setup_interaction(repeater_length, solution_collection, start_fid, target_fid, allowed_block_lengths, p_gates)
         res = interaction.single_learning_life(num_trials, 500, True, env_statistics={"resources": interaction.env.get_resources})
         return interaction, res
     except Exception:
@@ -161,7 +152,7 @@ def run(aux):
         raise
 
 
-if __name__ == "__main__":
+def run_scaling_delegated(num_processes, num_agents, num_trials, repeater_length, allowed_block_lengths, p_gates, target_fid, start_fids, result_path):
     start_time = time()
     assert_dir(result_path)
     sc = SolutionCollection()
@@ -169,15 +160,11 @@ if __name__ == "__main__":
         sc.load(result_path + "/solution_collection.pickle")
     except IOError:
         warn("SolutionCollection not found - creating new one.")
-    # fids = np.arange(0.6, 1.00, 0.05)
-    # fids = np.arange(0.6, 1.00, 0.10)
-    # start_fids = it.product(fids, repeat=repeater_length)
-    start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]
     for i, start_fid in enumerate(start_fids):
         config_path = result_path + "length%d_%d/" % (repeater_length, i)
         assert_dir(config_path)
         print(start_fid)
-        aux = [(repeater_length, sc, start_fid) for i in range(num_agents)]
+        aux = [(repeater_length, sc, start_fid, target_fid, num_trials, allowed_block_lengths, p_gates) for i in range(num_agents)]
         p = Pool(processes=num_processes)
         interactions, res_list = zip(*p.map(run, aux))
         p.close()
@@ -207,35 +194,3 @@ if __name__ == "__main__":
 
     sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
-
-# # plot best resource curve
-# best_resources = res_list[min_index]["resources"]
-# np.save("results/best_resources_%d.npy" % repeater_length, best_resources)
-# with open("results/block_action_%d.pickle" % repeater_length, "wb") as f:
-#     pickle.dump(block_action, f)
-# with open("results/best_history_%d.pickle" % repeater_length, "wb") as f:
-#     pickle.dump(best_history, f)
-# print("repeater length %d took %.2f minutes" % (repeater_length, (time() - start_time) / 60))
-# # plt.scatter(np.arange(1, len(best_resources) + 1), best_resources, s=20)
-# # plt.yscale("log")
-# # plt.axhline(y=reward_constants[repeater_length], color="r")
-# # plt.title("repeater length:" + str(repeater_length))
-# # plt.show()
-
-
-# exit()
-#
-#
-
-
-
-# auxlist = []
-# for i in range(2, 9):
-#     ffs = np.arange(0.85, 0.999, 0.001)
-#     y = [generate_constant(i, q_initial, j, 0.9) for j in ffs]
-#     print(i, np.min(y))
-#     auxlist += [np.min(y)]
-#     # plt.plot(ffs, y)
-#     # plt.title(str(i))
-#     # plt.show()
-# print(auxlist)
