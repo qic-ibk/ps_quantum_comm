@@ -64,6 +64,7 @@ class MetaAnalysisInteraction(object):
             self.primary_agent.history_since_last_reward = branch_history
             self.primary_agent._learning(reward)
             self.primary_agent.brain.reset_glow()
+            self.primary_agent.temporary_percepts = {}  # since we don't use the
 
     def single_learning_life(self, n_trials, verbose_trial_count=False, last_history_file=None):
         reward_curve = np.zeros(n_trials)

@@ -8,30 +8,10 @@ from time import time
 class FlexiblePerceptsPSAgent(BasicPSAgent):
     """PS Agent without predefined percepts
     """
-    # def __init__(self, n_actions, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense"):
-    #     self.agent_wait_time = time()
-    #     self.n_actions = n_actions
-    #     self.n_percepts = 0  # no initial preprogrammed percepts
-    #     self.policy_type = policy_type
-    #
-    #     self.ps_gamma = ps_gamma
-    #     self.ps_eta = ps_eta
-    #     self.ps_alpha = ps_alpha
-    #
-    #     if brain_type == "dense":
-    #         from .brains.dense_brain import DenseBrain
-    #         self.brain = DenseBrain(self.n_actions, n_percepts=0)
-    #     elif brain_type == "sparse":
-    #         from .brains.sparse_brain import SparseBrain
-    #         self.brain = SparseBrain(self.n_actions, n_percepts=0)
-    #     else:
-    #         raise ValueError("%s is not a supported brain_type" % brain_type)
-    #
-    #     self.history_since_last_reward = []
-    #     self.percept_dict = {}
     def __init__(self, n_actions, ps_gamma, ps_eta, policy_type, ps_alpha, brain_type="dense", reset_glow=False):
         BasicPSAgent.__init__(self, n_actions, [0], ps_gamma, ps_eta, policy_type, ps_alpha, brain_type, reset_glow)
         self.percept_dict = {}
+        self.temporary_percepts = {}
 
     def _percept_preprocess(self, observation):
         # dictionary keys must be immutable
@@ -45,8 +25,57 @@ class FlexiblePerceptsPSAgent(BasicPSAgent):
             raise TypeError('Observation is of a type not supported as dictionary key. You may be able to add a way of handling this type.')
 
         if dict_key not in self.percept_dict:
-            # add new percept
-            self.percept_dict[dict_key] = self.n_percepts
-            self.n_percepts += 1
-            self.brain.add_percept()
-        return self.percept_dict[dict_key]
+            if dict_key not in self.temporary_percepts:
+                self.temporary_percepts[dict_key] = len(self.percept_dict) + len(self.temporary_percepts)
+            return self.temporary_percepts[dict_key]
+            # # add new percept
+            # self.percept_dict[dict_key] = self.n_percepts
+            # self.n_percepts += 1
+            # self.brain.add_percept()
+        else:
+            return self.percept_dict[dict_key]
+
+    def _learning(self, reward_now):  # learning and forgetting
+            if self.ps_gamma != 0:
+                self.brain.decay(self.ps_gamma)
+            if reward_now != 0:
+                for new_percept in self.temporary_percepts:
+                    self.n_percepts += 1
+                    self.brain.add_percept()
+                self.percept_dict.update(self.temporary_percepts)
+                self.temporary_percepts = {}
+                self.brain.update_g_matrix(self.ps_eta, self.history_since_last_reward)
+                self.history_since_last_reward = []
+                self.brain.update_h_matrix(reward_now)
+
+    def deliberate_and_learn(self, observation, reward, episode_finished, info={}):  # this variant does nothing with info
+        """Learn according to reward, then select and return next action.
+
+        Parameters
+        ----------
+        observation : int or list of ints
+            The observation provided by the environment in the same format
+            as `n_percepts_multi` at init.
+        reward : float
+            The reward for the previously selected action.
+        episode_finished : int
+            1 if this is a new trial, else 0
+        info : dict
+            Dictionary of additional information passed to the agent.
+            This basic variant does nothing with it.
+
+        Returns
+        -------
+        int
+            The action selected.
+
+        """
+        self._learning(reward)
+        if episode_finished and self.reset_glow:
+            self.history_since_last_reward = []
+            self.brain.reset_glow()
+            self.temporary_percepts = {}  # discard percepts that will not be rewarded
+        percept_now = self._percept_preprocess(observation)
+        action = self._policy(percept_now)
+        self.history_since_last_reward += [(action, percept_now)]
+        return action
