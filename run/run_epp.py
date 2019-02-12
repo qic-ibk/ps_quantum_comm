@@ -3,7 +3,6 @@ import os, sys; sys.path.insert(0, os.path.abspath("."))
 from environments.epp_env import EPPEnv
 from meta_analysis_interaction import MetaAnalysisInteraction
 from agents.ps_agent_changing_actions import ChangingActionsPSAgent
-import matplotlib.pyplot as plt
 from multiprocessing import Pool
 from time import time
 import numpy as np
@@ -18,7 +17,7 @@ def assert_dir(path):
 
 num_processes = 48  # change according to cluster computer you choose
 num_agents = 100
-n_trials = 120000
+n_trials = 500000
 eta = 0
 result_path = "results/epp_modified/raw/"
 
@@ -28,7 +27,8 @@ def run_epp(i, sparsity=10):
     env = EPPEnv()
     agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")  # glow reset is handled by MetaAnalysis Interaction
     interaction = MetaAnalysisInteraction(agent, env)
-    res = interaction.single_learning_life(n_trials, verbose_trial_count=False)
+    last_history_file = result_path + "last_trial_history_%d.txt" % i
+    res = interaction.single_learning_life(n_trials, verbose_trial_count=False, last_history_file=last_history_file)
     reward_curve = res["reward_curve"]
     if sparsity != 1:
         reward_curve = reward_curve[::sparsity]
