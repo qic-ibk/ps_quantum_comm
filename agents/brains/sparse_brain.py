@@ -49,12 +49,15 @@ class SparseBrain(object):
             self.h_matrix = _SparseHMatrix(aux)
 
     def get_h_vector(self, percept):
-        if self.mode == "h_zero":
-            return self.h_matrix[:, percept].toarray().flatten() + 1
-        else:
-            if np.sum(self.h_matrix[:, percept]) == 0:  # if percept is new - create it
-                self.h_matrix[:, percept] = 1
-            return self.h_matrix[:, percept].toarray().flatten()
+        try:
+            if self.mode == "h_zero":
+                return self.h_matrix[:, percept].toarray().flatten() + 1
+            else:
+                if np.sum(self.h_matrix[:, percept]) == 0:  # if percept is new - create it
+                    self.h_matrix[:, percept] = 1
+                return self.h_matrix[:, percept].toarray().flatten()
+        except IndexError:
+            return np.ones(self.h_matrix.shape[0], dtype=self.h_matrix.dtype)
 
     def update_g_matrix(self, eta, history_since_last_reward):
         if not isinstance(history_since_last_reward[0], tuple):

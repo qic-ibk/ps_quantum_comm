@@ -35,7 +35,10 @@ class DenseBrain(object):
         self.h_matrix = (1. - gamma) * self.h_matrix + gamma * np.ones(self.h_matrix.shape, dtype=self.h_matrix.dtype)
 
     def get_h_vector(self, percept):
-        return self.h_matrix.get_h_vector(percept)
+        try:
+            return self.h_matrix.get_h_vector(percept)
+        except IndexError:
+            return np.ones(self.h_matrix.shape[0], dtype=self.h_matrix.dtype)
 
     def update_g_matrix(self, eta, history_since_last_reward):
         if not isinstance(history_since_last_reward[0], tuple):
