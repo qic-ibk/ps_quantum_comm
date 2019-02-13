@@ -26,6 +26,12 @@ if __name__ == "__main__":
     plt.savefig(plot_path + "average_reward.png")
     plt.show()
     found_rewards = [reward_curve[-1] for reward_curve in reward_curves]
+    non_zero = np.nonzero(found_rewards)[0]
+    for reward_index in non_zero:
+        print("Reward: " + str(found_rewards[reward_index]))
+        with open(result_path + "last_trial_history_%d.txt" % reward_index, "r") as f:
+            for line in f:
+                print(line, end="")
     np.savetxt(plot_path + "found_rewards.txt", found_rewards, fmt="%.6f")
     plt.hist(found_rewards, bins=50)
     plt.xlabel("Reward")
