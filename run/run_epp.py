@@ -17,7 +17,7 @@ def assert_dir(path):
 
 num_processes = 48  # change according to cluster computer you choose
 num_agents = 100
-n_trials = 100000
+n_trials = 500000
 eta = 0
 result_path = "results/epp_modified/raw/"
 
