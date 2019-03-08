@@ -5,8 +5,8 @@ import os
 
 num_agents = 100
 sparsity = 10
-result_path = "results/epp_modified/raw/"
-plot_path = "results/epp_modified/plot_ready/"
+result_path = "results/epp_modified_10rs/raw/"
+plot_path = "results/epp_modified_10rs/plot_ready/"
 
 
 def assert_dir(path):
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             for line in f:
                 print(line, end="")
     np.savetxt(plot_path + "found_rewards.txt", found_rewards, fmt="%.6f")
-    plt.hist(found_rewards, bins=50)
+    plt.hist(found_rewards, bins=np.arange(-0.005, 1.015, 0.01))
     plt.xlabel("Reward")
     plt.ylabel("Number of agents")
     plt.savefig(plot_path + "found_rewards_hist.png")

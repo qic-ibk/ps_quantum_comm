@@ -2,13 +2,13 @@ import os, sys; sys.path.insert(0, os.path.abspath("."))
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-from run.run_scaling_delegated import naive_constant
+from run.aux_scaling_delegated import naive_constant
 
 # start_fids = [(0.7,) * 2]
 # start_fids = [(0.65,) * 2]
 start_fids = [(0.75,) * 2]
-results_path = "results/scaling_delegated/p_gates98/length2_27/"
-p_gates = 0.98
+results_path = "results/scaling_delegated/p_gates990/length2_27/"
+p_gates = 0.990
 
 
 for i, start_fid in enumerate(start_fids):
@@ -26,7 +26,7 @@ for i, start_fid in enumerate(start_fids):
     a = "\n".join(a)
     # print(a)
     resources = np.load(path + "best_resources.npy")
-    const = naive_constant(repeater_length=len(start_fid), start_fid=start_fid, target_fid=0.9, p=p_gates)
+    const = naive_constant(repeater_length=len(start_fid), start_fid=start_fid, target_fid=0.9, p_gates=p_gates)
     # resources = resources[:1500]
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
