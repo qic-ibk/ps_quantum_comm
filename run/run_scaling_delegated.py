@@ -18,9 +18,10 @@ setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": list
           {"repeater_length": 8, "allowed_block_lengths": [2, 3, 4], "start_fids": [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]}
           ]
 
-for p in p_gates:
-    p_path = result_path + "p_gates" + str(int(p * 1000)) + "/"
-    for setup in setups:
-        run_scaling_delegated(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
-                              repeater_length=setup["repeater_length"], allowed_block_lengths=setup["allowed_block_lengths"],
-                              p_gates=p, target_fid=target_fid, start_fids=setup["start_fids"], result_path=p_path)
+if __name__ == "__main__":
+    for p in p_gates:
+        p_path = result_path + "p_gates" + str(int(p * 1000)) + "/"
+        for setup in setups:
+            run_scaling_delegated(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
+                                  repeater_length=setup["repeater_length"], allowed_block_lengths=setup["allowed_block_lengths"],
+                                  p_gates=p, target_fid=target_fid, start_fids=setup["start_fids"], result_path=p_path)
