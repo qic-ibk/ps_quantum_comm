@@ -83,7 +83,7 @@ def resources_from_block_action(start_fid, action_sequence):
 
 class SolutionCollection(object):
     def __init__(self, initial_dict={}):
-        self.solution_dict = initial_dict
+        self.solution_dict = dict(initial_dict)  # make a copy, because we will do in-place operations
 
     def get_block_action(self, fid_list):
         dict_key = tuple((int(fid * 100) for fid in fid_list))  # getting actions is rounded down
