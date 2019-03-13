@@ -13,15 +13,15 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 32
+num_processes = 48
 num_agents = 128
 num_trials = 10000
 repeater_length = 2
 allowed_block_lengths = []
-p_gates = 0.98
+p_gates = 0.99
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated_symmetrized/p_gates98/"
+result_path = "results/scaling_delegated_symmetrized/p_gates99/"
 
 
 def assert_dir(path):
