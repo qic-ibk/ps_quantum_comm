@@ -18,10 +18,10 @@ num_agents = 128
 num_trials = 10000
 repeater_length = 2
 allowed_block_lengths = []
-p_gates = 0.99
+p_gates = 0.995
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated_symmetrized/p_gates99/"
+result_path = "results/scaling_delegated_symmetrized/p_gates995/"
 
 
 def assert_dir(path):
