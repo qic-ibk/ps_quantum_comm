@@ -63,4 +63,5 @@ for i, start_fid in enumerate(start_fids):
     plt.xlabel("gate error parameter p")
     plt.ylabel("resources relative to symmetric guess")
     plt.grid()
+    plt.savefig("results/scaling_delegated/comparison_by_error_%d.png" % i)
     plt.show()
