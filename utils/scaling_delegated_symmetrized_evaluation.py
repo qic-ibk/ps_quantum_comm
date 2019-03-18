@@ -19,6 +19,7 @@ for j, length in enumerate(lengths):
     action_history = [action for _, _, action in history]
     b = [str(k) for k in action_history]
     b = "\n".join(b)
+    print("Solution for length " + str(length) + ":")
     print(b)
     with open(path + "block_action.pickle", "rb") as f:
         block_action = pickle.load(f)
