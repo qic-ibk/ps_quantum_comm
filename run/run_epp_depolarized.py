@@ -19,7 +19,7 @@ num_processes = 64  # change according to cluster computer you choose
 num_agents = 100
 n_trials = 500000
 eta = 0
-result_path = "results/epp_modified/raw/"
+result_path = "results/epp_modified_depolarized/raw/"
 
 
 def run_epp(i, sparsity=10):
@@ -28,7 +28,7 @@ def run_epp(i, sparsity=10):
     agent = ChangingActionsPSAgent(env.n_actions, ps_gamma=0, ps_eta=eta, policy_type="softmax", ps_alpha=1, brain_type="dense")  # glow reset is handled by MetaAnalysis Interaction
     interaction = MetaAnalysisInteraction(agent, env)
     last_history_file = result_path + "last_trial_history_%d.txt" % i
-    res = interaction.single_learning_life(n_trials, verbose_trial_count=False, last_history_file=last_history_file, depolarize=False)
+    res = interaction.single_learning_life(n_trials, verbose_trial_count=False, last_history_file=last_history_file, depolarize=True)
     reward_curve = res["reward_curve"]
     if sparsity != 1:
         reward_curve = reward_curve[::sparsity]
