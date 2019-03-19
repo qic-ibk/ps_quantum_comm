@@ -66,7 +66,7 @@ class MetaAnalysisInteraction(object):
             self.primary_agent.brain.reset_glow()
             self.primary_agent.temporary_percepts = {}  # since we don't use the
 
-    def single_learning_life(self, n_trials, verbose_trial_count=False, last_history_file=None):
+    def single_learning_life(self, n_trials, verbose_trial_count=False, last_history_file=None, depolarize=False):
         reward_curve = np.zeros(n_trials)
         res = {}
         for i_trial in range(n_trials):
@@ -90,7 +90,7 @@ class MetaAnalysisInteraction(object):
             else:
                 self.run_branch_until_finished(partial_trial, observation, reward, episode_finished, info, file=None)
             # now the evaluating and updating part starts
-            reward = self.primary_env.multiverse_reward(self.partial_trial_list, depolarize=False, recurrence_steps=10)
+            reward = self.primary_env.multiverse_reward(self.partial_trial_list, depolarize=depolarize, recurrence_steps=10)
             self.merge_reward(reward)
             reward_curve[i_trial] = reward
         res["reward_curve"] = reward_curve
