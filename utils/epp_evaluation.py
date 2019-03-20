@@ -18,13 +18,13 @@ if __name__ == "__main__":
     assert_dir(result_path)
     assert_dir(plot_path)
     reward_curves = [np.load(result_path + "reward_curve_%d.npy" % i) for i in range(num_agents)]
-    average_curve = np.sum(reward_curves, axis=0) / num_agents
-    np.savetxt(plot_path + "average_reward_sparsity_%d.txt" % sparsity, average_curve, fmt="%.6f")
-    plt.plot(np.arange(1, len(average_curve) * sparsity + 1, sparsity), average_curve)
-    plt.xlabel("Number of trials")
-    plt.ylabel("Average reward")
-    plt.savefig(plot_path + "average_reward.png")
-    plt.show()
+    # average_curve = np.sum(reward_curves, axis=0) / num_agents
+    # np.savetxt(plot_path + "average_reward_sparsity_%d.txt" % sparsity, average_curve, fmt="%.6f")
+    # plt.plot(np.arange(1, len(average_curve) * sparsity + 1, sparsity), average_curve)
+    # plt.xlabel("Number of trials")
+    # plt.ylabel("Average reward")
+    # plt.savefig(plot_path + "average_reward.png")
+    # plt.show()
     found_rewards = [reward_curve[-1] for reward_curve in reward_curves]
     non_zero = np.nonzero(found_rewards)[0]
     for reward_index in non_zero:
