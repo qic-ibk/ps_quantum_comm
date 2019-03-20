@@ -4,12 +4,22 @@ import pickle
 import matplotlib.pyplot as plt
 from run.aux_scaling_delegated import naive_constant
 
-# start_fids = [(0.7,) * 2]
-# start_fids = [(0.65,) * 2]
 start_fids = [(0.75,) * 2]
-results_path = "results/scaling_delegated/p_gates990/length2_27/"
+results_path = "results/scaling_delegated/p_gates990/length2_27/"  # 27 is the index corresponding to the (0.75, 0.75) starting fidelities
+output_path = "results/repeater_length2/plot_ready/"
 p_gates = 0.990
 
+
+def assert_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+assert_dir(output_path)
+with open(output_path + "info.txt", "w") as f:
+    info_lines = ["p=" + str(p_gates), "starting_fidelities: " + str(start_fids)]
+    info_lines = "\n".join(info_lines)
+    f.writelines(info_lines)
 
 for i, start_fid in enumerate(start_fids):
     print(start_fids[i])
@@ -27,21 +37,24 @@ for i, start_fid in enumerate(start_fids):
     # print(a)
     resources = np.load(path + "best_resources.npy")
     const = naive_constant(repeater_length=len(start_fid), start_fid=start_fid, target_fid=0.9, p_gates=p_gates)
+    with open(output_path + "naive_constant.txt", "w") as f:
+        f.write(str(const))
     # resources = resources[:1500]
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
     plt.axhline(y=const, color='r')
-    plt.title("starting fids: " + str(start_fid) + " ; best solution found")
+    # plt.title("starting fids: " + str(start_fid) + " ; best solution found")
     plt.ylabel("resources used")
     plt.xlabel("trial number")
-    plt.savefig(path + "best_resources.png")
+    plt.savefig(output_path + "best_learning_curve.png")
     plt.show()
+    np.savetxt(output_path + "best_learning_curve.txt", resources)
     resource_list = np.loadtxt(path + "resource_list.txt")
     try:
         # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
         # print(dict(zip(*np.unique(resource_list, return_counts=True))))
         # print(resource_list)
-        plt.hist(resource_list, bins=300)
+        plt.hist(resource_list, bins=50)
     except IndexError:
         plt.axvline(x=resource_list[0])
     plt.axvline(x=const, color='r')
@@ -50,5 +63,7 @@ for i, start_fid in enumerate(start_fids):
     # ax.ticklabel_format(axis="x", style="sci")
     plt.ylabel("number of agents")
     plt.xlabel("resources of found solution")
-    plt.title("starting fids = " + str(start_fid))
+    # plt.title("starting fids = " + str(start_fid))
+    plt.savefig(output_path + "resource_histogram.png")
     plt.show()
+    np.savetxt(output_path + "resource_histogram.txt", resource_list)
