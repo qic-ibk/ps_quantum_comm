@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from run.aux_scaling_delegated import naive_constant
 
 start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]
-ps = [0.98, 0.985, 0.99, 0.995]  # , 1.0]
+ps = [0.98, 0.985, 0.99, 0.995, 1.0, 0.986, 0.987, 0.988, 0.989, 0.991, 0.992]
 
 
 for i, start_fid in enumerate(start_fids):
@@ -38,7 +38,7 @@ for i, start_fid in enumerate(start_fids):
         plt.ylabel("resources used")
         plt.xlabel("trial number")
         plt.savefig(path + "best_resources.png")
-        plt.show()
+        plt.show(block=False)
         resource_list = np.loadtxt(path + "resource_list.txt")
         try:
             # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
@@ -54,10 +54,11 @@ for i, start_fid in enumerate(start_fids):
         plt.ylabel("number of agents")
         plt.xlabel("resources of found solution")
         plt.title("starting fids = " + str(start_fid))
-        plt.show()
+        plt.show(block=False)
         min_resource = min(resource_list)
         compare[j] = min_resource / const
 
+    plt.close()
     plt.scatter(ps, compare)
     plt.title("starting fids: " + str(start_fid))
     plt.xlabel("gate error parameter p")
