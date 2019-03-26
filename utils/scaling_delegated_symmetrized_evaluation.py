@@ -6,10 +6,22 @@ from run.run_scaling_delegated_symmetrized import naive_constant
 
 start_fid = 0.75
 start_fid_index = 3
-results_path = "results/scaling_delegated_symmetrized/p_gates99/"
+results_path = "results/scaling_delegated_symmetrized/raw/p_gates99/"
+output_path = "results/scaling_delegated_symmetrized/plot_ready/"
 lengths = [2, 4, 8, 16, 32, 64]
 p_gates = 0.99
 
+
+def assert_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+assert_dir(output_path)
+with open(output_path + "info.txt", "w") as f:
+    info_lines = ["p=" + str(p_gates), "starting_fidelity: " + str(start_fid)]
+    info_lines = "\n".join(info_lines)
+    f.writelines(info_lines)
 
 compare = np.zeros(len(lengths))
 for j, length in enumerate(lengths):
@@ -32,36 +44,43 @@ for j, length in enumerate(lengths):
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
     plt.yscale("log")
     plt.axhline(y=const, color='r')
-    plt.title("starting fids: " + str(start_fid) + " ; best solution found ; " + "length = " + str(length))
+    # plt.title("starting fids: " + str(start_fid) + " ; best solution found ; " + "length = " + str(length))
     plt.ylabel("resources used")
     plt.xlabel("trial number")
-    plt.savefig(path + "best_resources.png")
+    if length == 8:
+        plt.savefig(output_path + "best_learning_curve_length%d.png" % length)
+        np.savetxt(output_path + "best_learning_curve_length%d.txt" % length, resources)
+        with open(output_path + "const_length%d.txt" % length, "w") as f:
+            f.write(str(const))
     plt.show()
+
     resource_list = np.loadtxt(path + "resource_list.txt")
-    try:
-        # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
-        # print(dict(zip(*np.unique(resource_list, return_counts=True))))
-        # print(resource_list)
-        plt.hist(resource_list, bins=300)
-    except IndexError:
-        plt.axvline(x=resource_list[0])
-    plt.axvline(x=const, color='r')
-    plt.xscale("log")
-    # ax = plt.gca()
-    # ax.ticklabel_format(axis="x", style="sci")
-    plt.ylabel("number of agents")
-    plt.xlabel("resources of found solution")
-    plt.title("starting fids = " + str(start_fid) + " ; length = " + str(length))
-    plt.show()
+    # try:
+    #     # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
+    #     # print(dict(zip(*np.unique(resource_list, return_counts=True))))
+    #     # print(resource_list)
+    #     plt.hist(resource_list, bins=300)
+    # except IndexError:
+    #     plt.axvline(x=resource_list[0])
+    # plt.axvline(x=const, color='r')
+    # plt.xscale("log")
+    # # ax = plt.gca()
+    # # ax.ticklabel_format(axis="x", style="sci")
+    # plt.ylabel("number of agents")
+    # plt.xlabel("resources of found solution")
+    # plt.title("starting fids = " + str(start_fid) + " ; length = " + str(length))
+    # plt.show()
     min_resource = min(resource_list)
     compare[j] = min_resource / const
 
 plt.scatter(np.log2(lengths), compare)
-plt.title("starting fids: " + str(start_fid))
+# plt.title("starting fids: " + str(start_fid))
 plt.xlabel("distance")
 plt.ylabel("resources relative to working fidelity strategy")
 # plt.xscale("log")
 plt.xticks(np.log2(lengths), ["2^1", "2^2", "2^3", "2^4", "2^5", "2^6"])
+plt.ylim(0.8, 2.2)
 plt.grid()
-plt.savefig(results_path + "comparison_by_length.png")
+plt.savefig(output_path + "comparison_by_length.png")
+np.savetxt(output_path + "comparison_by_length.txt", compare)
 plt.show()
