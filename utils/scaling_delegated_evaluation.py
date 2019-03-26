@@ -5,18 +5,30 @@ import matplotlib.pyplot as plt
 from run.aux_scaling_delegated import naive_constant
 
 start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), (0.95, 0.9, 0.6, 0.9, 0.95, 0.95, 0.9, 0.6)]
-ps = [0.98, 0.985, 0.99, 0.995, 1.0, 0.986, 0.987, 0.988, 0.989, 0.991, 0.992]
+ps = np.linspace(0.98, 1.0, num=21)
+results_path = "results/scaling_delegated/raw/"
+output_path = "results/scaling_delegated/plot_ready/"
 
+
+def assert_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+assert_dir(output_path)
+with open(output_path + "info.txt", "w") as f:
+    f.write("starting fidelities: " + str(start_fids) + "\n")
+    f.write("learning curves are plotted for p=0.99")
+np.savetxt(output_path + "ps.txt", ps)
 
 for i, start_fid in enumerate(start_fids):
     print(start_fid)
     compare = np.zeros(len(ps))
     for j, p in enumerate(ps):
         print("p=%.3f" % p)
-        results_path = "results/scaling_delegated/p_gates" + str(int(p * 1000)) + "/"
+        p_path = results_path + "p_gates" + str(int(p * 1000)) + "/"
         p_gates = p
-
-        path = results_path + "length8_%d/" % i
+        path = p_path + "length8_%d/" % i
         with open(path + "best_history.pickle", "rb") as f:  # best history is actually quite useless like this - we need actions instead of action_indices
             history = pickle.load(f)
         action_history = [action for _, _, action in history]
@@ -34,11 +46,16 @@ for i, start_fid in enumerate(start_fids):
         plt.scatter(np.arange(1, len(resources) + 1), resources, s=20)
         plt.yscale("log")
         plt.axhline(y=const, color='r')
-        plt.title("starting fids: " + str(start_fid) + " ; best solution found")
+        # plt.title("starting fids: " + str(start_fid) + " ; best solution found")
         plt.ylabel("resources used")
         plt.xlabel("trial number")
-        plt.savefig(path + "best_resources.png")
-        plt.show(block=False)
+        if p == 0.99:
+            plt.savefig(output_path + "best_resources_p99_%d.png" % i)
+            np.savetxt(output_path + "best_resources_p99_%d.txt" % i, resources)
+            with open(output_path + "const_%d.txt" % i, "w") as f:
+                f.write(str(const))
+        # plt.show()
+        plt.cla()
         resource_list = np.loadtxt(path + "resource_list.txt")
         try:
             # resource_list = resource_list[np.logical_not(np.isnan(resource_list))]
@@ -53,16 +70,17 @@ for i, start_fid in enumerate(start_fids):
         # ax.ticklabel_format(axis="x", style="sci")
         plt.ylabel("number of agents")
         plt.xlabel("resources of found solution")
-        plt.title("starting fids = " + str(start_fid))
-        plt.show(block=False)
+        # plt.title("starting fids = " + str(start_fid))
+        # plt.show()
+        plt.cla()
         min_resource = min(resource_list)
         compare[j] = min_resource / const
 
-    plt.close()
     plt.scatter(ps, compare)
-    plt.title("starting fids: " + str(start_fid))
+    # plt.title("starting fids: " + str(start_fid))
     plt.xlabel("gate error parameter p")
     plt.ylabel("resources relative to symmetric guess")
     plt.grid()
-    plt.savefig("results/scaling_delegated/comparison_by_error_%d.png" % i)
+    plt.savefig(output_path + "comparison_by_error_%d.png" % i)
+    np.savetxt(output_path + "comparison_by_error_%d.txt" % i, compare)
     plt.show()

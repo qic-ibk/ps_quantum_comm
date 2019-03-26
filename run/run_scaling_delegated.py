@@ -8,9 +8,9 @@ num_processes = 64
 num_agents = 128
 num_trials = 10000
 target_fid = 0.9
-result_path = "results/scaling_delegated/"
+result_path = "results/scaling_delegated/raw/"
 
-p_gates = [0.987, 0.988, 0.989, 0.991, 0.992, 0.993, 0.994, 0.996, 0.997, 0.998, 0.999, 0.981, 0.982, 0.983, 0.984]  # [0.98, 0.985, 0.99, 0.995, 1.0]
+p_gates = np.arange(0.98, 0.001, 1.001)  # takes about 1 day per data point
 
 setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": list(it.product(np.arange(0.6, 1.00, 0.05), repeat=2))},
           {"repeater_length": 3, "allowed_block_lengths": [2], "start_fids": list(it.product(np.arange(0.6, 1.00, 0.1), repeat=3))},
