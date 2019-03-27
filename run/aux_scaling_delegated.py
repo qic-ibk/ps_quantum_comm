@@ -72,7 +72,7 @@ def all_smaller(first, second):
     return all([x <= y for x, y in zip(first, second)])
 
 
-def resources_from_block_action(start_fid, action_sequence):
+def resources_from_block_action(start_fid, action_sequence, target_fid, p_gates):
     rep_length = len(start_fid)
     env = Env(length=rep_length, start_fid=start_fid, target_fid=target_fid, p=p_gates)
     for action in action_sequence:
@@ -103,11 +103,11 @@ class SolutionCollection(object):
                 # raise type(e)(e.message + my_str)
             return self.solution_dict[dict_key]
 
-    def add_block_action(self, fid_list, action_list):
+    def add_block_action(self, fid_list, action_list, target_fid, p_gates):
         key = tuple((int(fid * 100) for fid in fid_list))
         if key in self.solution_dict:
             old_action_list = self.solution_dict[key]
-            if resources_from_block_action(fid_list, action_list) >= resources_from_block_action(fid_list, old_action_list):
+            if resources_from_block_action(fid_list, action_list, target_fid, p_gates) >= resources_from_block_action(fid_list, old_action_list, target_fid, p_gates):
                 return
             else:  # if it uses fewer results, overwrite solution
                 warn("Found a better solution for " + str(key))
@@ -182,7 +182,7 @@ def run_scaling_delegated(num_processes, num_agents, num_trials, repeater_length
         best_history = res_list[min_index]["last_trial_history"]
         block_action = best_env.composite_action_from_history(best_history)
         action_sequence = block_action["actions"]
-        sc.add_block_action(fid_list=start_fid, action_list=action_sequence)  # save for later use
+        sc.add_block_action(fid_list=start_fid, action_list=action_sequence, target_fid=target_fid, p_gates=p_gates)  # save for later use
         best_resources = res_list[min_index]["resources"]
         np.save(config_path + "best_resources.npy", best_resources)
         with open(config_path + "block_action.pickle", "wb") as f:
