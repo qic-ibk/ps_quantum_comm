@@ -6,8 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-num_agents = 100
-sparsity = 10
+num_agents = 500
+sparsity = 20
 etas = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7]
 result_path_clifford = "results/teleportation/clifford_gates/raw/"
 result_path_universal = "results/teleportation/universal_gates/raw/"
@@ -54,7 +54,15 @@ def cumulative_steps(count_dict, failure_number=10000):
     elif len(auxlist) == 3:
         aux = max(auxlist, key=lambda x: x[0])
         length_list = [length for count, length in auxlist] + [aux[1]]
-        return np.sum([length_list])
+        return np.sum(length_list)
+    elif len(auxlist) == 2:
+        counts = [count < 115 and count > 85 for count, length in auxlist]
+        if np.any(counts):
+            length_list = [length for count, length in auxlist] * 2
+        else:
+            aux = max(auxlist, key=lambda x: x[0])
+            length_list = [length for count, length in auxlist] + [aux[1]] * 2
+        return np.sum(length_list)
     else:
         raise ValueError("Could not compute cumulative_steps for " + repr(count_dict))
 
