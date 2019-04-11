@@ -21,7 +21,7 @@ allowed_block_lengths = []
 p_gates = 0.995
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated_symmetrized/p_gates995/"
+result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
 
 
 def assert_dir(path):
