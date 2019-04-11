@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os
 
 num_agents = 100
-sparsity = 10
-result_path = "results/epp_modified/raw/"
-plot_path = "results/epp_modified/plot_ready/"
+# sparsity = 10
+result_path = "results/epp_modified_depolarized/raw/"
+plot_path = "results/epp_modified_depolarized/plot_ready/"
 
 
 def assert_dir(path):
