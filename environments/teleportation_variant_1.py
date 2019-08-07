@@ -115,7 +115,7 @@ class TaskEnvironment(object):
         # self.n_percepts  # not applicable here
         self.target = phiplus
         self.target_rho = np.dot(self.target, mat.H(self.target))
-        self.state = tensor(self.target, phiplus)
+        self.state = tensor(self.target, mat.z0, mat.z0)
         self.qubit_locations = [0, 0, 0]
         self.percept_now = []
         self.available_actions = [i for i in range(self.n_actions)]
@@ -123,7 +123,7 @@ class TaskEnvironment(object):
     def reset(self):
         self.target = phiplus
         self.target_rho = np.dot(self.target, mat.H(self.target))
-        self.state = tensor(self.target, phiplus)
+        self.state = tensor(self.target, mat.z0, mat.z0)
         self.percept_now = []
         self.qubit_locations = [0, 0, 0]
         self.available_actions = [i for i in range(self.n_actions)]
@@ -154,15 +154,15 @@ class TaskEnvironment(object):
                 continue
 
     def _adjust_cnots(self):
-        if self.qubit_locations[0] == self.qubit_locations[1]:
+        if self.qubit_locations[0] == self.qubit_locations[1] and H_0 in self.available_actions and H_1 in self.available_actions:
             self._add_actions([CNOT_01])
         else:
             self._remove_actions([CNOT_01])
-        if self.qubit_locations[0] == self.qubit_locations[2]:
+        if self.qubit_locations[0] == self.qubit_locations[2] and H_0 in self.available_actions and H_2 in self.available_actions:
             self._add_actions([CNOT_02])
         else:
             self._remove_actions([CNOT_02])
-        if self.qubit_locations[1] == self.qubit_locations[2]:
+        if self.qubit_locations[1] == self.qubit_locations[2] and H_1 in self.available_actions and H_2 in self.available_actions:
             self._add_actions([CNOT_12])
         else:
             self._remove_actions([CNOT_12])
@@ -195,7 +195,7 @@ class TaskEnvironment(object):
             self._adjust_cnots()
         elif action == SEND_2:
             self.qubit_locations[2] = 1
-            self._remove_actions([SEND_1])
+            self._remove_actions([SEND_2])
             self._adjust_cnots()
         elif action == MEASURE_0:
             self.state, outcome = _measure(self.state, 0)
