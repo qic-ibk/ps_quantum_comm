@@ -26,8 +26,8 @@ def merge_collections(*args):
     return SolutionCollection(initial_dict=my_dict)
 
 
-def generate_constant(repeater_length, start_fid, working_fidelity, target_fidelity, p_gates):
-    env = Env(length=repeater_length, start_fid=start_fid, target_fid=target_fidelity, p=p_gates)
+def generate_constant(working_fidelity, start_fid, target_fidelity, p_gates, memory_alpha):
+    env = Env(start_fid=start_fid, target_fid=target_fidelity, p=p_gates, alpha=memory_alpha)
     while len(env.state) > 1:
         # purify all pairs to working fidelity
         for i, pair in enumerate(env.state):
@@ -58,9 +58,9 @@ def generate_constant(repeater_length, start_fid, working_fidelity, target_fidel
     return env.get_resources()
 
 
-def naive_constant(repeater_length, start_fid, target_fid, p_gates):
+def naive_constant(start_fid, target_fid, p_gates, memory_alpha):
     working_fids = np.arange(0.85, 0.999, 0.001)
-    my_constant = np.nanmin([generate_constant(repeater_length, start_fid, wf, target_fid, p_gates) for wf in working_fids])
+    my_constant = np.nanmin([generate_constant(wf, start_fid, target_fid, p_gates, memory_alpha) for wf in working_fids])
     return my_constant
 
 
@@ -124,8 +124,7 @@ class SolutionCollection(object):
 
 def setup_interaction_fids(start_fid, solution_collection, target_fid, allowed_block_lengths, p_gates, memory_alpha):
     repeater_length = len(start_fid)
-    # reward_constant = naive_constant(repeater_length, start_fid, target_fid, p_gates)
-    reward_constant = np.nan
+    reward_constant = naive_constant(repeater_length, start_fid, target_fid, p_gates)
     if np.isnan(reward_constant):
         reward_constant = np.finfo(np.float32).max  # this will give the duty of determining the constant solely to the environemnt
     env = Env(start_fid=start_fid, available_block_lengths=allowed_block_lengths, target_fid=target_fid, p=p_gates, alpha=memory_alpha, reward_constant=reward_constant, reward_exponent=2, delegated_solutions=solution_collection)
