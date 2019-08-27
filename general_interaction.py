@@ -76,13 +76,15 @@ class Interaction(object):
             step_curve[i_trial] = i_step
             for stat in env_statistics:
                 res[stat] += [env_statistics[stat]()]
-            if live_display is True and i_trial % 1000 == 0:
+            if live_display is True and i_trial % 50 == 0:
                 plt.cla()
-                plt.ylim(-1, 51)
-                aux = np.copy(step_curve)
-                aux[learning_curve == 0] = 50
-                aux[i_trial:] = 0
-                plt.scatter(np.arange(1, n_trials + 1)[::50], aux[::50])
+                plt.yscale("log")
+                # plt.ylim(-1, 51)
+                # aux = np.copy(step_curve)
+                # aux[learning_curve == 0] = 50
+                # aux[i_trial:] = 0
+                aux = learning_curve
+                plt.scatter(np.arange(1, n_trials + 1)[::1], aux[::1])
                 plt.pause(0.5)
         res["learning_curve"] = learning_curve
         res["step_curve"] = step_curve
