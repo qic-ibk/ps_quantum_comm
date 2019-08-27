@@ -124,7 +124,7 @@ class SolutionCollection(object):
 
 def setup_interaction_fids(start_fid, solution_collection, target_fid, allowed_block_lengths, p_gates, memory_alpha):
     repeater_length = len(start_fid)
-    reward_constant = naive_constant(repeater_length, start_fid, target_fid, p_gates)
+    reward_constant = naive_constant(start_fid, target_fid, p_gates, memory_alpha)
     if np.isnan(reward_constant):
         reward_constant = np.finfo(np.float32).max  # this will give the duty of determining the constant solely to the environemnt
     env = Env(start_fid=start_fid, available_block_lengths=allowed_block_lengths, target_fid=target_fid, p=p_gates, alpha=memory_alpha, reward_constant=reward_constant, reward_exponent=2, delegated_solutions=solution_collection)
