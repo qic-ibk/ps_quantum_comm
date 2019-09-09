@@ -12,7 +12,8 @@ result_path = "results/scaling_memoryerrors/raw/"
 
 # p_gates = np.arange(0.98, 0.001, 1.001)  # takes about 1 day per data point
 p_gates = [0.99]
-memory_alphas = [1.0 / 1, 1.0 / 0.5]  # one second/half a second
+# memory_alphas = [1.0 / 1, 1.0 / 0.5]  # one second/half a second
+memory_alphas = [1.0 / 0.1, 1.0 / 0.01, 1.0 / 0.001]
 
 
 setups = [{"allowed_block_lengths": [], "start_fids": list(it.product(np.arange(0.6, 1.00, 0.05), repeat=2))},
@@ -28,7 +29,7 @@ setups = [{"allowed_block_lengths": [], "start_fids": list(it.product(np.arange(
 if __name__ == "__main__":
     for p in p_gates:
         for alpha in memory_alphas:
-            p_path = result_path + "p_gates" + str(int(p * 1000)) + "_alpha" + str(int(alpha * 10)) + "/"
+            p_path = result_path + "p_gates" + str(int(p * 1000)) + "_alpha" + str(int(alpha)) + "/"
             for setup in setups:
                 run_scaling_fids(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
                                  start_fids=setup["start_fids"], allowed_block_lengths=setup["allowed_block_lengths"],
