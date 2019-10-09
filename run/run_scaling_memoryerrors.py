@@ -1,11 +1,11 @@
 from __future__ import division, print_function
 import os, sys; sys.path.insert(0, os.path.abspath("."))
-from run.aux_scaling_memoryerrors import run_scaling_fids, run_scaling_distances, SolutionCollection
+from run.aux_scaling_memoryerrors import run_scaling_fids, run_scaling_distances, SolutionCollection, assert_dir
 import numpy as np
 import itertools as it
 from warnings import warn
 
-num_processes = 64
+num_processes = 32
 num_agents = 128
 num_trials = 10000
 target_fid = 0.9
@@ -50,6 +50,7 @@ p = 0.99
 target_fid = 0.9
 position_path = "results/scaling_memoryerrors_positions/raw/" + "p_gates" + str(int(p * 1000)) + "_alpha" + str(int(alpha)) + "/"
 sc_path = "results/scaling_memoryerrors/raw/" + "p_gates" + str(int(p * 1000)) + "_alpha" + str(int(alpha)) + "/"
+assert_dir(position_path)
 
 # # first, try to obtain solution collection from runs above
 
