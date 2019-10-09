@@ -69,7 +69,7 @@ except IOError:
     # warn("SolutionCollection not found - creating new one.")
     warn("Expected existing SolutionCollection not found.")
     raise
-sc.save(result_path + "solution_collection.pickle")
+sc.save(position_path + "solution_collection.pickle")
 
 
 # one additional station
