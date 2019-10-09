@@ -75,17 +75,17 @@ sc.save(result_path + "solution_collection.pickle")
 # one additional station
 distances = [distances_from_station_numbers([i]) for i in range(1, num_possible_stations + 1)]
 run_scaling_distances(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
-                      distances=distances_from_station_numbers, allowed_block_lengths=[],
+                      distances=distances, allowed_block_lengths=[],
                       p_gates=p, memory_alpha=alpha, target_fid=target_fid, result_path=position_path)
 
 # two additional stations
 distances = [distances_from_station_numbers([i, j]) for i in range(1, num_possible_stations) for j in range(i + 1, num_possible_stations + 1)]
 run_scaling_distances(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
-                      distances=distances_from_station_numbers, allowed_block_lengths=[2],
+                      distances=distances, allowed_block_lengths=[2],
                       p_gates=p, memory_alpha=alpha, target_fid=target_fid, result_path=position_path)
 
 # three additional stations
 distances = [distances_from_station_numbers([i, j, k]) for i in range(1, num_possible_stations - 1) for j in range(i + 1, num_possible_stations) for k in range(j + 1, num_possible_stations + 1)]
 run_scaling_distances(num_processes=num_processes, num_agents=num_agents, num_trials=num_trials,
-                      distances=distances_from_station_numbers, allowed_block_lengths=[2, 3],
+                      distances=distances, allowed_block_lengths=[2, 3],
                       p_gates=p, memory_alpha=alpha, target_fid=target_fid, result_path=position_path)
