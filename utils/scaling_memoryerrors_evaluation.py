@@ -25,8 +25,8 @@ assert_dir(output_path)
 
 # with open(path + "p_gates990_alpha10/length8_0") as f:
 
-resources = np.load(results_path + "p_gates990_alpha10/length8_0/best_resources.npy")
-resources_alpha2 = np.load(results_path + "p_gates990_alpha20/length8_0/best_resources.npy")
+resources = np.load(results_path + "p_gates990_alpha1/length8_0/best_resources.npy")
+resources_alpha2 = np.load(results_path + "p_gates990_alpha2/length8_0/best_resources.npy")
 resources_nomemory = np.load("results/scaling_delegated/raw/" + "p_gates990/length8_1/best_resources.npy")
 const = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=1)
 const_alpha2 = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=2)

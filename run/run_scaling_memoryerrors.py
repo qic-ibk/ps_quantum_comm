@@ -56,9 +56,10 @@ assert_dir(position_path)
 
 
 def distances_from_station_numbers(numbers):
+    length_increment = total_length / (num_possible_stations + 1)
     aux1 = [0] + list(numbers)
     aux2 = list(numbers) + [num_possible_stations + 1]
-    distances = [j - i for i, j in zip(aux1, aux2)]
+    distances = [(j - i) * length_increment for i, j in zip(aux1, aux2)]
     return distances
 
 
