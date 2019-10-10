@@ -5,7 +5,7 @@ import numpy as np
 import itertools as it
 from warnings import warn
 
-num_processes = 32
+num_processes = 64
 num_agents = 128
 num_trials = 10000
 target_fid = 0.9
@@ -42,7 +42,7 @@ result_path = "results/scaling_memoryerrors/raw/"
 
 # # Different length distribution run
 
-total_length = 30000  # 30km
+total_length = 20000  # 20km
 num_possible_stations = 7
 possible_stations = [x * total_length / (num_possible_stations + 1) for x in range(num_possible_stations + 2)]
 alpha = 1 / 0.1

@@ -251,7 +251,7 @@ def run_scaling_distances(num_processes, num_agents, num_trials, distances, allo
         try:
             min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
         except ValueError:  # if all values are NaN
-            print("No solutions were found for repeater length %d and initial distances " % repeater_length + str(distances))
+            print("No solutions were found for repeater length %d and initial distances " % repeater_length + str(repeater_distances))
             continue
         min_resource = resource_list[min_index]
         # add best block to next iteration
