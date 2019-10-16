@@ -22,28 +22,33 @@ assert_dir(output_path)
 #     f.write("learning curves are plotted for p=0.99")
 # np.savetxt(output_path + "ps.txt", ps)
 
+alphas = [1, 2, 10]  # , 100, 1000]
+colors = ["C0", "C1", "C2", "C3"]  # , "C4", "C5"]
 
-# with open(path + "p_gates990_alpha10/length8_0") as f:
-
-resources = np.load(results_path + "p_gates990_alpha1/length8_0/best_resources.npy")
-resources_alpha2 = np.load(results_path + "p_gates990_alpha2/length8_0/best_resources.npy")
-resources_nomemory = np.load("results/scaling_delegated/raw/" + "p_gates990/length8_1/best_resources.npy")
-const = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=1)
-const_alpha2 = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=2)
+resource_list = []
+for i, alpha in enumerate(alphas):
+    resources = np.load(results_path + "p_gates990_alpha%d/length8_0/best_resources.npy" % alpha)
+    resource_list += [resources[-1]]
+    plt.scatter(np.arange(1, len(resources) + 1), resources, s=20, color=colors[i], label="alpha=%d" % alpha)
+    const = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=alpha)
+    plt.axhline(y=const, color=colors[i])
+# also plot no memory errors
+resources = np.load("results/scaling_delegated/raw/" + "p_gates990/length8_1/best_resources.npy")
+plt.scatter(np.arange(1, len(resources) + 1), resources, s=20, color=colors[-1], label="alpha=0")
 const_nomemory = naive_constant_nomemory(repeater_length=8, start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99)
-plt.scatter(np.arange(1, len(resources) + 1), resources, s=20, color="b", label="1s")
-plt.scatter(np.arange(1, len(resources) + 1), resources_alpha2, s=20, color="r", label="0.5s")
-plt.scatter(np.arange(1, len(resources) + 1), resources_nomemory, s=20, color="g", label="inf")
-plt.yscale("log")
-plt.axhline(y=const, color='b')
-plt.axhline(y=const_alpha2, color="r")
-plt.axhline(y=const_nomemory, color='g')
-# plt.axhline(y=1, color='r')
+plt.axhline(y=const_nomemory, color=colors[-1])
+
 plt.title("different memory times for: " + str((0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)))
 plt.ylabel("resources used")
 plt.xlabel("trial number")
+plt.yscale("log")
+plt.ylim((10**9, 10**17))
 plt.legend()
+plt.savefig(output_path + "differing_alphas.png")
 plt.show()
+
+# print(naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=100))  # => nan, so the naive strategy does not provide a solution either
+
 
 
 # for i, start_fid in enumerate(start_fids):
