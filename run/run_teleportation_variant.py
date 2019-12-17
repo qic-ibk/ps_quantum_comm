@@ -28,6 +28,7 @@ num_agents = 500
 etas = [0.3]
 n_trials = 5 * 10**6
 result_path = "results/teleportation/variant2/raw/"
+sparsity = 50
 
 
 def run_teleportation(i, eta, label_multiplicator=10, sparsity=20):
@@ -58,7 +59,7 @@ class RunCallable(object):  # this solution is necessary because only top-level 
         self.eta = eta
 
     def __call__(self, i):
-        return run_teleportation(i, self.eta, label_multiplicator=get_label_multiplicator(self.eta))
+        return run_teleportation(i, self.eta, label_multiplicator=get_label_multiplicator(self.eta), sparsity=sparsity)
 
 
 # def callback_error(result):
