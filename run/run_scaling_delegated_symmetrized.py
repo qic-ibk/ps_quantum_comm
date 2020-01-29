@@ -151,13 +151,12 @@ def run(aux):
 if __name__ == "__main__":
     start_time = time()
     assert_dir(result_path)
-    sc = SolutionCollection()
-    try:
-        sc.load(result_path + "/solution_collection.pickle")
-    except IOError:
-        warn("SolutionCollection not found - creating new one.")
-
     for setup in setups:
+        sc = SolutionCollection()
+        try:
+            sc.load(result_path + "/solution_collection.pickle")
+        except IOError:
+            warn("SolutionCollection not found - creating new one.")
         repeater_length = setup["repeater_length"]
         allowed_block_lengths = setup["allowed_block_lengths"]
         start_fids = setup["start_fids"]
@@ -194,5 +193,5 @@ if __name__ == "__main__":
             with open(config_path + "best_history.pickle", "wb") as f:
                 pickle.dump(best_history, f)
 
-    sc.save(result_path + "/solution_collection.pickle")
+        sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
