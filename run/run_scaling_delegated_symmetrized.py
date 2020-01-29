@@ -13,15 +13,22 @@ import traceback
 from warnings import warn
 import itertools as it
 
-num_processes = 48
+num_processes = 64
 num_agents = 128
 num_trials = 10000
-repeater_length = 2
-allowed_block_lengths = []
+# repeater_length = 2
+# allowed_block_lengths = []
 p_gates = 0.995
 eta = 0
 target_fid = 0.9
 result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
+
+
+setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 3, "allowed_block_lengths": [2], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 4, "allowed_block_lengths": [2, 3], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 8, "allowed_block_lengths": [2, 3, 4], "start_fids": [(0.7,) * 8]}
+          ]
 
 
 def assert_dir(path):
@@ -114,7 +121,7 @@ class SolutionCollection(object):
             self.solution_dict = pickle.load(f)
 
 
-def setup_interaction(repeater_length, solution_collection, start_fid):
+def setup_interaction(repeater_length, allowed_block_lengths, solution_collection, start_fid):
     # print("No. of collected actions:" + str(len(collection)))
     reward_constant = naive_constant(repeater_length, start_fid, target_fid)
     if np.isnan(reward_constant):
@@ -131,7 +138,8 @@ def run(aux):
         repeater_length = aux[0]
         solution_collection = aux[1]
         q_initial = aux[2]
-        interaction = setup_interaction(repeater_length, solution_collection, q_initial)
+        allowed_block_lengths = aux[3]
+        interaction = setup_interaction(repeater_length, allowed_block_lengths, solution_collection, q_initial)
         res = interaction.single_learning_life(num_trials, 500, True, env_statistics={"resources": interaction.env.get_resources})
         return interaction, res
     except Exception:
@@ -148,41 +156,43 @@ if __name__ == "__main__":
         sc.load(result_path + "/solution_collection.pickle")
     except IOError:
         warn("SolutionCollection not found - creating new one.")
-    start_fids = np.arange(0.6, 1.00, 0.05)
-    # start_fids = np.arange(0.6, 1.00, 0.10)
-    # start_fids = it.product(fids, repeat=repeater_length)
-    # start_fids = [(0.7,) * 8, (0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6)]
-    for i, start_fid in enumerate(start_fids):
-        config_path = result_path + "length%d_%d/" % (repeater_length, i)
-        assert_dir(config_path)
-        print(start_fid)
-        aux = [(repeater_length, sc, start_fid) for i in range(num_agents)]
-        p = Pool(processes=num_processes)
-        interactions, res_list = zip(*p.map(run, aux))
-        p.close()
-        p.join()
-        resource_list = [res["resources"][-1] for res in res_list]
-        np.savetxt(config_path + "resource_list.txt", resource_list)
-        try:
-            min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
-        except ValueError:  # if all values are NaN
-            print("No solutions were found for repeater length %d and initial fidelities " % repeater_length + str(start_fid))
-            continue
-        min_resource = resource_list[min_index]
-        # add best block to next iteration
-        best_env = interactions[min_index].env
-        best_history = res_list[min_index]["last_trial_history"]
-        block_action = best_env.composite_action_from_history(best_history)
-        action_sequence = block_action["actions"]
-        sc.add_block_action(fid=start_fid, block_size=repeater_length, action_list=action_sequence)  # save for later use
-        best_resources = res_list[min_index]["resources"]
-        np.save(config_path + "best_resources.npy", best_resources)
-        with open(config_path + "block_action.pickle", "wb") as f:
-            pickle.dump(block_action, f)
-        # add action also before saving, because action index is not very informative
-        best_history = [(observation, action_index, best_env.action_list[action_index]) for observation, action_index in best_history]
-        with open(config_path + "best_history.pickle", "wb") as f:
-            pickle.dump(best_history, f)
+
+    for setup in setups:
+        repeater_length = setup["repeater_length"]
+        allowed_block_lengths = setup["allowed_block_lengths"]
+        start_fids = setup["start_fids"]
+
+        for i, start_fid in enumerate(start_fids):
+            config_path = result_path + "length%d_%d/" % (repeater_length, i)
+            assert_dir(config_path)
+            print(start_fid)
+            aux = [(repeater_length, sc, start_fid, allowed_block_lengths) for i in range(num_agents)]
+            p = Pool(processes=num_processes)
+            interactions, res_list = zip(*p.map(run, aux))
+            p.close()
+            p.join()
+            resource_list = [res["resources"][-1] for res in res_list]
+            np.savetxt(config_path + "resource_list.txt", resource_list)
+            try:
+                min_index = np.nanargmin(resource_list)  # because unsuccessful agents will return NaN
+            except ValueError:  # if all values are NaN
+                print("No solutions were found for repeater length %d and initial fidelities " % repeater_length + str(start_fid))
+                continue
+            min_resource = resource_list[min_index]
+            # add best block to next iteration
+            best_env = interactions[min_index].env
+            best_history = res_list[min_index]["last_trial_history"]
+            block_action = best_env.composite_action_from_history(best_history)
+            action_sequence = block_action["actions"]
+            sc.add_block_action(fid=start_fid, block_size=repeater_length, action_list=action_sequence)  # save for later use
+            best_resources = res_list[min_index]["resources"]
+            np.save(config_path + "best_resources.npy", best_resources)
+            with open(config_path + "block_action.pickle", "wb") as f:
+                pickle.dump(block_action, f)
+            # add action also before saving, because action index is not very informative
+            best_history = [(observation, action_index, best_env.action_list[action_index]) for observation, action_index in best_history]
+            with open(config_path + "best_history.pickle", "wb") as f:
+                pickle.dump(best_history, f)
 
     sc.save(result_path + "/solution_collection.pickle")
     print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
