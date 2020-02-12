@@ -25,9 +25,8 @@ result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
 
 
 setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": np.arange(0.6, 1.00, 0.05)},
-          {"repeater_length": 3, "allowed_block_lengths": [2], "start_fids": np.arange(0.6, 1.00, 0.05)},
           {"repeater_length": 4, "allowed_block_lengths": [2, 3], "start_fids": np.arange(0.6, 1.00, 0.05)},
-          {"repeater_length": 8, "allowed_block_lengths": [2, 3, 4], "start_fids": [(0.7,) * 8]}
+          {"repeater_length": 8, "allowed_block_lengths": [2, 3, 4], "start_fids": [0.7]}
           ]
 
 
