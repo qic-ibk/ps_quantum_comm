@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class Interaction(object):
@@ -8,7 +9,7 @@ class Interaction(object):
         self.agent = agent
         self.env = environment
 
-    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=True, env_statistics={}, verbose_trial_count=False):
+    def single_learning_life(self, n_trials, max_steps_per_trial, return_last_trial_history=True, env_statistics={}, verbose_trial_count=False, live_display=False):
         """Run consecutive trials between agent and environment.
 
         Parameters
@@ -24,6 +25,10 @@ class Interaction(object):
             values are callables, usually environment methods
         verbose_trial_count : bool
             If True, prints a reminder every 1000 trials. (default: False)
+        live_display : bool
+            If True, displays the step curve as it becomes available.
+            Not recommended for performance or more than one agent at a time.
+            (default: False)
 
         Returns
         -------
@@ -43,6 +48,8 @@ class Interaction(object):
         episode_finished = 0
         info = {}
         res = {}
+        if live_display is True:
+            plt.ion()
         for stat in env_statistics:
             res[stat] = []
         for i_trial in range(n_trials):
@@ -69,6 +76,16 @@ class Interaction(object):
             step_curve[i_trial] = i_step
             for stat in env_statistics:
                 res[stat] += [env_statistics[stat]()]
+            if live_display is True and i_trial % 50 == 0:
+                plt.cla()
+                plt.yscale("log")
+                # plt.ylim(-1, 51)
+                # aux = np.copy(step_curve)
+                # aux[learning_curve == 0] = 50
+                # aux[i_trial:] = 0
+                aux = learning_curve
+                plt.scatter(np.arange(1, n_trials + 1)[::1], aux[::1])
+                plt.pause(0.5)
         res["learning_curve"] = learning_curve
         res["step_curve"] = step_curve
         if return_last_trial_history:
