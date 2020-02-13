@@ -18,7 +18,7 @@ num_agents = 128
 num_trials = 10000
 # repeater_length = 2
 # allowed_block_lengths = []
-p_gates = 0.995
+p_gates = 0.99
 eta = 0
 target_fid = 0.9
 result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
@@ -26,7 +26,10 @@ result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
 
 setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": np.arange(0.6, 1.00, 0.05)},
           {"repeater_length": 4, "allowed_block_lengths": [2], "start_fids": np.arange(0.6, 1.00, 0.05)},
-          {"repeater_length": 8, "allowed_block_lengths": [2, 4], "start_fids": [0.7]}
+          {"repeater_length": 8, "allowed_block_lengths": [2, 4], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 16, "allowed_block_lengths": [2, 4, 8], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 32, "allowed_block_lengths": [2, 4, 8, 16], "start_fids": np.arange(0.6, 1.00, 0.05)},
+          {"repeater_length": 64, "allowed_block_lengths": [2, 4, 8, 16, 32], "start_fids": np.arange(0.6, 1.00, 0.05)}
           ]
 
 
@@ -151,6 +154,7 @@ if __name__ == "__main__":
     start_time = time()
     assert_dir(result_path)
     for setup in setups:
+        setup_time = time()
         sc = SolutionCollection()
         try:
             sc.load(result_path + "/solution_collection.pickle")
@@ -193,4 +197,5 @@ if __name__ == "__main__":
                 pickle.dump(best_history, f)
 
         sc.save(result_path + "/solution_collection.pickle")
-    print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - start_time) / 60.0))
+        print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - setup_time) / 60.0))
+    print("The complete run took %.2f minutes." % (time() - start_time) / 60.0)
