@@ -21,7 +21,7 @@ num_trials = 10000
 p_gates = 0.99
 eta = 0
 target_fid = 0.9
-result_path = "results/scaling_delegated_symmetrized/raw/p_gates995/"
+result_path = "results/scaling_delegated_symmetrized/raw/p_gates99/"
 
 
 setups = [{"repeater_length": 2, "allowed_block_lengths": [], "start_fids": np.arange(0.6, 1.00, 0.05)},
