@@ -198,4 +198,4 @@ if __name__ == "__main__":
 
         sc.save(result_path + "/solution_collection.pickle")
         print("Repeater length %d took %.2f minutes." % (repeater_length, (time() - setup_time) / 60.0))
-    print("The complete run took %.2f minutes." % (time() - start_time) / 60.0)
+    print("The complete run took %.2f minutes." % ((time() - start_time) / 60.0))
