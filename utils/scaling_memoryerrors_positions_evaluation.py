@@ -37,6 +37,14 @@ plt.ylabel("Resources used")
 plt.savefig(output_path + "one_station.png")
 plt.show()
 
+positions_list = [i for i in range(1, num_possible_stations + 1)]
+aux_list = zip(positions_list, resource_list)
+sorted_list = sorted(aux_list, key=lambda x: x[1])
+with open(output_path + "one_station_sorted.txt", "w") as f:
+    f.write("\n".join(str(x) for x in sorted_list))
+
+
+
 resource_list = []
 # then: cases with two additional stations
 for i in range(21):
@@ -70,11 +78,17 @@ plt.savefig(output_path + "two_stations.png")
 plt.show()
 
 positions_list = [(i, j) for i in range(1, num_possible_stations) for j in range(i + 1, num_possible_stations + 1)]
-aux_list = zip(positions_list, resource_list)
+aux_list = list(zip(positions_list, resource_list))
 mytable = np.zeros((num_possible_stations - 1, num_possible_stations - 1), dtype=np.float)
 for position, resource in aux_list:
     mytable[position[0] - 1, position[1] - 2] = resource
 np.savetxt(output_path + "2position_table.txt", mytable, fmt="%.2e")
+
+sorted_list = sorted(aux_list, key=lambda x: x[1])
+with open(output_path + "two_stations_sorted.txt", "w") as f:
+    f.write("\n".join(str(x) for x in sorted_list))
+
+
 
 # finally: 3 additional stations
 resource_list = []

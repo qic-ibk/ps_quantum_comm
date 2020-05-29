@@ -35,12 +35,14 @@ for i, alpha in enumerate(alphas):
     plt.scatter(np.arange(1, len(resources) + 1), resources, s=20, color=colors[i], label="τ = 1/%d s" % alpha)
     const = naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=alpha)
     # const_list += [const]
+    print("tau=%s" % str(1/alpha), const)
     plt.axhline(y=const, color=colors[i])
 # also plot no memory errors
 resources = np.load("results/scaling_delegated/raw/" + "p_gates990/length8_1/best_resources.npy")
 np.savetxt(output_path + "best_resources_alpha0.txt", resources)
 plt.scatter(np.arange(1, len(resources) + 1), resources, s=20, color=colors[-1], label="τ = ∞")
 const_nomemory = naive_constant_nomemory(repeater_length=8, start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99)
+print("nomemory", const_nomemory)
 plt.axhline(y=const_nomemory, color=colors[-1])
 
 # print(naive_constant(start_fid=(0.8, 0.6, 0.8, 0.8, 0.7, 0.8, 0.8, 0.6), target_fid=0.9, p_gates=0.99, memory_alpha=30))
