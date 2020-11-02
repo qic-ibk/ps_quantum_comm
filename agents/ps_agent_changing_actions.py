@@ -1,4 +1,14 @@
 """
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original code for basic PS agent written by Alexey Melnikov and Katja Ried.
+The ChangingActionsPSAgent written by Julius Wallnöfer, it modifies the basic
+PS agent in the following ways:
+    * Modifications to basic PS agent and flexible PS anent as outlined in their respective files.
+    * Allows the available actions to change at every interaction step.
 """
 import numpy as np
 from warnings import warn

@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original simple interaction written by Katja Ried
+Rewrite to make it a special case of GeneralInteraction by Julius Wallnöfer
+"""
+
 from __future__ import division, print_function
 from general_interaction import Interaction as GeneralInteraction
 

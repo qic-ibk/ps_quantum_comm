@@ -1,4 +1,29 @@
-"""Includes the BasicPSAgent class."""
+"""Includes the BasicPSAgent class.
+
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original code written by Alexey Melnikov and Katja Ried, implementing ideas from
+
+'Projective simulation for artificial intelligence'
+Hans J. Briegel & Gemma De las Cuevas
+Scientific Reports 2, Article number: 400 (2012) doi:10.1038/srep00400
+
+and
+
+'Projective Simulation for Classical Learning Agents: A Comprehensive Investigation'
+Julian Mautner, Adi Makmal, Daniel Manzano, Markus Tiersch & Hans J. Briegel
+New Generation Computing, Volume 33, Issue 1, pp 69-114 (2015) doi:10.1007/s00354-015-0102-0
+
+Modifications by Julius Wallnöfer:
+    * separate the storage mechanism of h- and glow-values ("brains") of the PS agent from the agent logic
+    * add checks so the update operations on h- and glow-values only gets performed when necessary
+    * option to reset glow matrix after every trial (essentially, if the agent is aware that trials are separate from each other)
+    * minor performance improvements
+"""
+
 from __future__ import division, print_function
 import numpy as np
 from time import time

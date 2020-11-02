@@ -1,4 +1,11 @@
-"""Run the scaling environment using blocks of different scales."""
+"""Run the scaling environment using blocks of different scales.
+
+Copyright 2020 Julius Wallnöfer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+"""
+
 import os, sys; sys.path.insert(0, os.path.abspath("."))
 import environments.scaling_repeater_delegated_memoryerrors_env as sr
 from environments.scaling_repeater_delegated_memoryerrors_env import TaskEnvironment as Env

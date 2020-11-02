@@ -1,9 +1,27 @@
+"""
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original code for basic PS agent written by Alexey Melnikov and Katja Ried.
+Modifications by Julius Wallnöfer:
+    * Modifications to basic PS agent as outlined there.
+    * Modifications to make glow time-based.
+"""
+
+
 from __future__ import division, print_function
 from time import time
 from .ps_min_agent import BasicPSAgent
 
 
 class TimeGlowAgent(BasicPSAgent):
+    """An agent that uses time-based glow mechanism instead of steps.
+
+    The time value has to be provided by the environment. We ended up not
+    using this variant of the PS agent in the final results for the paper.
+    """
     def __init__(self, *args, **kwargs):
         if kwargs["brain_type"] == "clip":
             raise ValueError("%s is not a supported brain_type" % kwargs["brain_type"])

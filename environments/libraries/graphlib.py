@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 30 14:33:42 2015
+"""Functions for entanglement purification and noise on graph states.
 
-@author: julius
+Copyright 2020 Julius Wallnöfer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+This is an outdated version of this collection of functions, the most recent
+version is published under the MIT license here: https://github.com/jwallnoefer/graphepp
 
 The aim of this project is to provide functions for Pauli-diagonal
 noise channels and the ADB multipartite entanglement purification protocol for

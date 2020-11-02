@@ -1,3 +1,10 @@
+"""
+Copyright 2020 Julius Wallnöfer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+"""
+
 from __future__ import division, print_function
 import numpy as np
 import matplotlib.pyplot as plt

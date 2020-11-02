@@ -1,6 +1,10 @@
 # stuff in results directory (since you probably don't want to overwrite them when pulling)
 results/
 
+# hidden editor files
+.pydevproject
+.project
+
 ##for latex
 # Core latex/pdflatex auxiliary files:
 *.aux

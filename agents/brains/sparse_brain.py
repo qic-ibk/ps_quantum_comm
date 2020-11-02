@@ -1,4 +1,16 @@
-"""A two-layer clip network with h and g matrices stored as sparse matrices."""
+"""A two-layer clip network with h and g matrices stored as sparse matrices.
+
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original code for basic PS agent written by Alexey Melnikov and Katja Ried.
+Modifications by Julius Wallnöfer:
+    * Splitting out the storage mechanism of h- and glow-values as "brain" classes.
+    * Overhaul to use sparse matrices instead of numpy arrays.
+    * glow-matrix update uses history_since_last_reward which is part of the performance improvements as outlined in the file of the basic PS agent.
+"""
 
 from scipy.sparse import lil_matrix, hstack, vstack
 import numpy as np

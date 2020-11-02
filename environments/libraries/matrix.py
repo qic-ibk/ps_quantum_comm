@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 19 14:59:42 2015
+"""Helper functions for matrix manipulation.
 
-@author: julius
+Copyright 2020 Julius Wallnöfer
 
-Most of the funcitons should be properly updated now.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
 """
 
 import numpy as np

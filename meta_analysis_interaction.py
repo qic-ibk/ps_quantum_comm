@@ -1,4 +1,11 @@
 """
+Copyright 2018 Alexey Melnikov and Katja Ried.
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original simple interaction written by Katja Ried
+Modification for meta_analysis by Julius Wallnöfer
 """
 from __future__ import print_function, division
 from copy import deepcopy

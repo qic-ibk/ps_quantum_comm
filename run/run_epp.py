@@ -1,3 +1,10 @@
+"""
+Copyright 2020 Julius Wallnöfer
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+"""
+
 from __future__ import division, print_function
 import os, sys; sys.path.insert(0, os.path.abspath("."))
 from environments.epp_env import EPPEnv
