@@ -1,7 +1,7 @@
 """A two-layer clip network with h and g matrices stored as numpy arrays.
 
 Copyright 2018 Alexey Melnikov and Katja Ried.
-Copyright 2020 Julius Wallnöfer
+Copyright 2020 Julius Wallnöfer, Alexey Melnikov
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 

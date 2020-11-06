@@ -1,3 +1,13 @@
+"""
+Copyright 2020 Lea Trenkwalder
+Copyright 2020 Julius Wallnöfer
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+
+Original clip-based PS agent by Lea Trenkwalder.
+Modifications to make it a brain class that fits the architecture of this project by Julius Wallnöfer.
+"""
+
 import numpy as np
 
 
